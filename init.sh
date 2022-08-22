@@ -11,7 +11,9 @@ sudo apt install -y peco xclip source-highlight docker.io docker-compose gawk tm
 #########
 ## vim ##
 ################################################################################
-sudo apt install -y nodejs
+sudo apt install -y nodejs exuberant-ctags
+curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
 
 #########
@@ -33,6 +35,11 @@ echo "[MSG] Enter git username."
 read -r name
 git config --global user.email "$name"
 
+
+###########
+## SHELL ##
+################################################################################
+chsh -s /usr/bin/zsh
 
 ##########
 ## Done ##

@@ -113,6 +113,14 @@ export PATH=${PATH}:/home/user/git/dotfiles/bin
 export PATH=${PATH}:$HOME/.nodebrew/current/bin
 export PATH=${PATH}:/usr/local/opt/mysql-client/bin
 
+# for pyenv
+export PYENV_ROOT="$HOME/.pyenv"
+command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/shims:$PATH"
+command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+if [[ $(which pyenv) == 'true' ]] ; then
+  eval "$(pyenv init -)"
+fi
+
 # prompt settings.
 autoload -Uz vcs_info
 zstyle ':vcs_info:*' formats "%F{green}%c%u[%s(%b)]%f"  # Git(branch)
