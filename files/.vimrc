@@ -26,27 +26,26 @@ filetype plugin indent on     " Enable filetree-view (netrw)
 " ------------------------------------------------------------------------------
 " Enable jj key for exit insert mode.
 inoremap <silent> jj <ESC>
+vnoremap <silent> nn <ESC>
 " Can move between line head to end.
 nnoremap j gj
 nnoremap k gk
 
-" Home / End
-nnoremap ( 0
-nnoremap ) $
-vnoremap ( 0
-vnoremap ) $
-
-" Scroll 1 line
+" 1 line scrolling
 nnoremap <S-k> <C-y>
 nnoremap <S-j> <C-e>
+
+" Home / End
+nnoremap 0 $
+nnoremap ` 0
+vnoremap 0 $
+vnoremap ` 0
 
 " Jump to previous word's head/end.
 nnoremap <S-w> b
 nnoremap <S-e> ge
-
-" Close current buffer. (not closes window)
-:command QQ bp<bar>sp<bar>bn<bar>bd<CR>
-nnoremap <silent> qq :bp<bar>sp<bar>bn<bar>bd<CR>
+vnoremap <S-w> b
+vnoremap <S-e> ge
 
 " Toggle buffer
 nnoremap <C-h> :bprevious<CR>
@@ -90,6 +89,16 @@ nnoremap <silent> fz :call ToggleWindowSize()<CR>
 nnoremap <silent> fx <C-w>c
 " Release hilight search strings when continuous input ESC.
 nmap <Esc><Esc> :nohlsearch<CR><Esc>
+
+" Fold/Open
+nnoremap <silent> zk zc
+nnoremap <silent> zj zo
+nnoremap <silent> zJ zO
+nnoremap <silent> zh zm
+nnoremap <silent> zH zM
+nnoremap <silent> zl zr
+nnoremap <silent> zL zR
+
 
 " ------------------------------------------------------------------------------
 " Input settings.
@@ -163,41 +172,63 @@ set hlsearch    " Hilight search strings.
 " ------------------------------------------------------------------------------
 " vim-plug
 "
-" Install Plugins => :PlugInstall
-" Update Plugins => :PlugUpdate
-" Install Language server => :LspInstallServer
-" Check & install Lnaguage servers => :LspManageServers (to install: press `i`)
-" Format Code => :LspDocumentFormatSync (Shortcut: Ctrl+i)
-" Rename variable names => LspRename (Shortcut: F2)
-" View hover informations => LspHover (Shortcut: F12)
-" Jump to a definition => LspDefinition (Shortcut: Ctrl+k)
+" LSP control
+"   Install Plugins => :PlugInstall
+"   Update Plugins => :PlugUpdate
+"   Install Language server => :LspInstallServer
+"   Check & install Lnaguage servers => :LspManageServers (to install: press `i`)
+"
+"   Format Code => :LspDocumentFormatSync (Ctrl+i)
+"   Rename variable names => LspRename (F2)
+"   View hover informations => LspHover (Shift+k)
+"
+"   Jump to a definition => LspDefinition (Ctrl+k)
+"   Jump to next diagnostic => LspNextDiagnostic (fd)
+"   Jump to next warning => LspNextDiagnostic (fnw)
+"   Jump to next error => LspNextDiagnostic (fne)
+"
 " Open NERDtree => NERDTreeToggle (Shortcut:Ctrl+o)
 "   Toggle hidden files showing => shift+i
 "   Reload a tree => r
+"
 " Toggle comment out
 "   for block = gc, for a line = gcc
-" Preview a markdown file => :PrevimOpen
+"
+" Toggle minimap
+"   Toggle minimap => :MinimapToggle (Ctrl+m)
+"
+" Preview a markdown file
+"   Open preview with browser => :PrevimOpen
+"
 " Show Toc on a markdown file
-"   on Vertical => :Toc (Ctrl+p) , on Horizontal => :Toch
+"   on Vertical => :Toc (f -> o) , on Horizontal => :Toch
+"
 " vim-table-mode
 "   Toggle table mode :TableModeToggle (Ctrl+t)
+"
 " Make markdown table from csv syntax
 "   Make table => Select lines and :MakeTable
 "   Make table with top index => Select lines and :MakeTable!
 "   Make CSV from markdown table => :UnmakeTable
+"
 " Vim-Surround
-"   Surround with `...` => Select word in visual mode and press S`
-"   Delete surround `...` => press ds` at inner words in `...`
+"   Surround with `...` => Select word in visual mode and press S -> `
+"   Delete surround `...` => press ds -> ` at inner words in `...`
 "   Change surround from `...` to (...) => press cs`( at inner words in `...`
+"
 " Win-Resizer
-"   Into Resize-mode: Ctrl + e
+"   Into Resize-mode: fe
 "   Change mode: e, End any-mode: enter
+"
+" Taglist
+"   Show taglist => :Tlist (Ctrl + p)
 " ------------------------------------------------------------------------------
 call plug#begin()
-" Always ON
-  "Plug 'fholgado/minibufexpl.vim'
+" utilities
   Plug 'scrooloose/nerdtree'
-" for Coding / mandatory plugins
+  Plug 'simeji/winresizer'
+  Plug 'voldikss/vim-floaterm'
+" for using LSP and snippets
   Plug 'prabirshrestha/asyncomplete.vim'
   Plug 'prabirshrestha/asyncomplete-lsp.vim'
   Plug 'prabirshrestha/vim-lsp'
@@ -206,31 +237,34 @@ call plug#begin()
   Plug 'hrsh7th/vim-vsnip'
   Plug 'hrsh7th/vim-vsnip-integ'
   Plug 'rafamadriz/friendly-snippets'
-  Plug 'bronson/vim-trailing-whitespace'
+" for formatting
+Plug 'prettier/vim-prettier', {
+  \ 'do': 'yarn install',
+    \ 'for': ['python', 'javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql', 'markdown', 'vue', 'svelte', 'yaml', 'html'] }
+" for automation
   Plug 'tpope/vim-commentary'
   Plug 'jiangmiao/auto-pairs'
-  Plug 'frazrepo/vim-rainbow'
-  Plug 'yggdroot/hipairs'
-  Plug 'gko/vim-coloresque'
-  Plug 'lilydjwg/colorizer'
   Plug 'ConradIrwin/vim-bracketed-paste'
   Plug 'tpope/vim-surround'
   Plug 'tpope/vim-repeat'
-  Plug 'godlygeek/tabular'
-  Plug 'simeji/winresizer'
-  Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
-  Plug 'junegunn/fzf.vim'
-  Plug 'vim-scripts/taglist.vim'
-  Plug 'szw/vim-tags'
-" for Appearance
+" for appearance
+  Plug 'bronson/vim-trailing-whitespace'
+  Plug 'frazrepo/vim-rainbow'
+  Plug 'yggdroot/hipairs'
+  Plug 'wfxr/minimap.vim'
+  " Plug 'gko/vim-coloresque'
+  Plug 'lilydjwg/colorizer'
   Plug 'Yggdroot/indentLine'
   Plug 'vim-airline/vim-airline'
   Plug 'vim-airline/vim-airline-themes'
   Plug 'ryanoasis/vim-devicons'
-  Plug 'crusoexia/vim-monokai'
-  Plug 'ghifarit53/tokyonight-vim'
+" for searching and tags
+  Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+  Plug 'junegunn/fzf.vim'
+  Plug 'majutsushi/tagbar'
+  Plug 'szw/vim-tags'
 " for vimrc
-  Plug 'guns/xterm-color-table.vim'
+  " Plug 'guns/xterm-color-table.vim'
 " for markdown editing
   Plug 'previm/previm'
   Plug 'tyru/open-browser.vim'
@@ -239,7 +273,8 @@ call plug#begin()
 " for HTML
   Plug 'alvan/vim-closetag'
 " for Git
-  Plug 'airblade/vim-gitgutter'
+  " Plug 'airblade/vim-gitgutter'
+  " Plug 'tpope/vim-fugitive'
 " for JSON
   Plug 'elzr/vim-json'
 " for Dockerfile
@@ -252,20 +287,31 @@ call plug#begin()
   Plug 'vim-python/python-syntax'
   Plug 'preservim/vim-markdown'
   Plug 'rhysd/vim-gfm-syntax'
+" Color schemes
+  Plug 'crusoexia/vim-monokai'
+  Plug 'ghifarit53/tokyonight-vim'
+  Plug 'joshdick/onedark.vim'
+  Plug 'arcticicestudio/nord-vim'
 call plug#end()
 
 " Plugin's keybind
 nnoremap <C-o>   :NERDTreeToggle<CR>
-nnoremap <silent> ff :Files<CR>
-nnoremap <silent> fr :Rg<CR>
-" nnoremap <C-p>   :LspInstallServer<CR>
-" nnoremap <C-p>   :Toc<CR>
-nnoremap <silent> fo :Toc<CR>
-nnoremap <C-p>   :Tlist<CR>
+nnoremap <C-p>   :TagbarToggle<CR>
 nnoremap <C-i>   :LspDocumentFormatSync<CR>
 nnoremap <C-k>   :LspDefinition<CR>
 nnoremap <F2>    :LspRename<CR>
 nnoremap <F12>   :LspHover<CR>
+nnoremap <C-t>   :TableModeToggle<CR>
+nnoremap <C-m>   :MinimapToggle<CR>
+nnoremap <silent> fe :WinResizerStartResize<CR>
+nnoremap <silent> ff :Files<CR>
+nnoremap <silent> ft :Rg<CR>
+nnoremap <silent> fo :Toc<CR>
+nnoremap <silent> fr :LspReferences<CR>
+nnoremap <silent> fd :LspNextDiagnostic<CR>
+nnoremap <silent> fD :LspPrevioustDiagnostic<CR>
+nnoremap <silent> gw :LspNextWarning<CR>
+nnoremap <silent> ge :LspNextError<CR>
 imap <expr> <Tab> vsnip#available(1)   ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
 smap <expr> <Tab> vsnip#available(1)   ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
 imap <expr> <S-Tab> vsnip#jumpable(-1) ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
@@ -273,42 +319,62 @@ smap <expr> <S-Tab> vsnip#jumpable(-1) ? '<Plug>(vsnip-jump-prev)'      : '<S-Ta
 inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
-nnoremap <C-t>   :TableModeToggle<CR>
 
 " Plugin's settings
+" for winresizer
+let g:winresizer_start_key = '<C-`>'
+
+" for LSP & autocompletion
 let g:lsp_diagnostics_enabled = 1
 let g:lsp_diagnostics_echo_cursor = 1
 let g:lsp_signature_help_enabled = 0
 let g:asyncomplete_auto_popup = 1
 let g:asyncomplete_auto_completeopt = 1
-let g:asyncomplete_popup_delay = 200
+let g:asyncomplete_popup_delay = 50
 let g:lsp_text_edit_enabled = 1
+
+" for vim-airline
 let g:airline_theme = 'dark'
 let g:airline#extensions#tabline#enabled = 1
 let g:airline_powerline_fonts = 0
+
+" for previm
 let g:previm_enable_realtime = 1
 let g:previm_disable_default_css = 1
 let g:previm_custom_css_path = '~/.vim/css/markdown.css'
+
+" for vim-markdown
 let g:vim_markdown_folding_disabled = 1
 let g:vim_markdown_conceal = 0
 let g:vim_markdown_conceal_code_blocks = 0
 let g:vim_markdown_toc_autofit = 1
+
+" for vim-table_mode
 let g:table_mode_enable = 1
+
 let g:python_highlight_all = 1
+
+" for vim-rainbow
 let g:rainbow_active = 1
 let g:rainbow_guifgs = ['RoyalBlue3', 'DarkOrange3', 'DarkOrchid3', 'FireBrick']
 let g:rainbow_ctermfgs = ['lightblue', 'lightgreen', 'yellow', 'red', 'magenta']
+
+" for hipairs
 let g:hiPairs_hl_matchPair = { 'term'    : 'underline,bold',
             \                  'cterm'   : 'bold',
             \                  'ctermfg' : 'red',
             \                  'ctermbg' : 'black',
             \                  'gui'     : 'bold',
-            \                  'guifg'   : 'Black',
-            \                  'guibg'   : '#D3B17D' }
+            \                  'guifg'   : 'Red',
+            \                  'guibg'   : 'Black' }
+
+" for vim-closetag
 let g:closetag_filenames = '*.html, *.htm, *.js'
 set termguicolors
 let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum" " Font color
 let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum" " Background color
+
+" for vim-tags
 if has("mac")
   let Tlist_Ctags_Cmd = "/usr/local/bin/ctags"
 elseif has("unix")
@@ -318,15 +384,20 @@ let Tlist_Show_One_File = 1
 let Tlist_Exit_OnlyWindow = 1
 let Tlist_Use_Right_Window = 1
 
-" Colorscheme
-colorscheme monokai                    " Colorscheme settings.
-" colorscheme molokai                    " Colorscheme settings.
-" colorscheme monokai_pro                " Colorscheme settings.
+" for minimap.vim
+let g:minimap_width = 10
+let g:minimap_auto_start = 0
+let g:minimap_auto_start_win_enter = 1
 
-" set termguicolors
-" let g:tokyonight_style = 'night' " available: night, storm
-" let g:tokyonight_enable_italic = 1
-" colorscheme tokyonight
+" for vim-floaterm
+let g:floaterm_keymap_toggle = '<C-j>'
+
+" Colorscheme
+let g:tokyonight_style = 'night'
+let g:tokyonight_enable_italic = 1
+" colorscheme monokai
+" colorscheme nord
+colorscheme tokyonight
 
 " Personal syntax highlight settings (for monokai)
 " memo: If want to check highlight group under the cursor,
@@ -335,13 +406,21 @@ colorscheme monokai                    " Colorscheme settings.
 "       And confirm highlight value with a command below.
 "         :highlight {highlight-group-name}
 " Color reference: http://www.calmar.ws/vim/256-xterm-24bit-rgb-color-chart.html
-highlight Title cterm=bold ctermfg=148 guifg=#A6E22D
-highlight mkdHeading cterm=bold ctermfg=148 guifg=#A6E22D
-highlight githubFlavoredMarkdownCode ctermfg=208 ctermbg=234 guifg=#ff8700 guibg=#1c1c1c
-highlight mkdCode ctermfg=208 ctermbg=234 guifg=#ff8700 guibg=#1c1c1c
-highlight mkdCodeStart ctermfg=8 guifg=#808080
-highlight mkdCodeEnd ctermfg=8 guifg=#808080
-highlight lv5 ctermfg=208 guifg=#ff8700
-highlight mkdInlineURL cterm=underline ctermfg=184 guifg=#ffff5f
-highlight mkdDelimiter ctermfg=white guifg=white
-highlight op_lv0 cterm=bold ctermfg=148 guifg=#A6E22D
+filetype detect
+if &filetype == 'markdown'
+  highlight Title cterm=bold ctermfg=148 guifg=#A6E22D
+  highlight mkdHeading cterm=bold ctermfg=148 guifg=#A6E22D
+  highlight githubFlavoredMarkdownCode ctermfg=208 ctermbg=234 guifg=#ff8700 guibg=#1c1c1c
+  highlight mkdCode ctermfg=208 ctermbg=234 guifg=#ff8700 guibg=#1c1c1c
+  highlight mkdCodeStart ctermfg=8 guifg=#808080
+  highlight mkdCodeEnd ctermfg=8 guifg=#808080
+  highlight lv5 ctermfg=208 guifg=#ff8700
+  highlight mkdInlineURL cterm=underline ctermfg=184 guifg=#ffff5f
+  highlight mkdDelimiter ctermfg=white guifg=white
+  highlight op_lv0 cterm=bold ctermfg=148 guifg=#A6E22D
+endif
+ augroup vimrc
+   autocmd!
+   au BufWritePost ~/.vimrc so ~/.vimrc
+   au QuitPre * FloatermKill!
+ augroup END
