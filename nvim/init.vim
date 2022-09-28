@@ -16,12 +16,10 @@ set mouse=a               " Enable mouse controls in nomal, visual, insert and c
 filetype plugin indent on " Enable filetree-view (netrw)
 autocmd!
 augroup vimrc             " to load .vimrc automaticaly when change it.
- au BufWritePost *.vimrc source ~/.vimrc
+ au BufWritePost *init.vim source ~/.config/nvim/init.vim
 augroup END
 if has("autocmd")
-augroup redhat            " to save the last cursor position.
-    " In text files, always limit the width of text to 78 characters
-    autocmd BufRead *.txt set tw=78
+  augroup saveposition    " to save the last cursor position.
     " When editing a file, always jump to the last cursor position
     autocmd BufReadPost *
     \ if line("'\"") > 0 && line ("'\"") <= line("$") |
@@ -247,6 +245,7 @@ set hlsearch    " Hilight search strings.
 call plug#begin()
 " utilities
   Plug 'scrooloose/nerdtree'
+  " Plug 'cocopon/vaffle.vim'
   Plug 'simeji/winresizer'
   Plug 'voldikss/vim-floaterm'
   Plug 'mhinz/vim-startify'
@@ -288,10 +287,10 @@ call plug#begin()
   Plug 'tpope/vim-fugitive'
   Plug 'airblade/vim-gitgutter'
 " for markdown editing
-  Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install' }
   Plug 'tyru/open-browser.vim'
   Plug 'dhruvasagar/vim-table-mode'
   Plug 'mattn/vim-maketable'
+  Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install' }
 " for HTML
   Plug 'alvan/vim-closetag'
 " for JSON
@@ -322,12 +321,12 @@ call plug#end()
 
 " Plugin's keybind
 " Toggles
-nnoremap <C-o>   :NERDTreeToggle<CR>
+" nnoremap <C-o>   :Vaffle<CR>
+nnoremap <C-o> :NERDTreeToggle<CR>
 nnoremap <silent> tm :MinimapToggle<CR>
 nnoremap <silent> tp :TagbarToggle<CR>
 nnoremap <silent> tr :WinResizerStartResize<CR>
 
-" Markdown
 nnoremap <silent> mm :MakeTable<CR>
 nnoremap <silent> mu :UnmakeTable<CR>
 nnoremap <silent> mo :Toc<CR>
@@ -351,6 +350,8 @@ nnoremap <silent> gn :LspNextDiagnostic<CR>
 nnoremap <silent> gN :LspPreviousDiagnostic<CR>
 nnoremap <silent> gw :LspNextWarning<CR>
 nnoremap <silent> ge :LspNextError<CR>
+nnoremap <silent> gf :LspDocumentFormat<CR>
+nnoremap <silent> gp :Prettier<CR>
 
 imap <expr> <Tab> vsnip#available(1)   ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
 smap <expr> <Tab> vsnip#available(1)   ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
@@ -380,11 +381,6 @@ let g:lsp_text_edit_enabled = 1
 let g:airline_theme = 'violet'
 let g:airline#extensions#tabline#enabled = 1
 let g:airline_powerline_fonts = 0
-
-" for previm
-let g:previm_enable_realtime = 1
-let g:previm_disable_default_css = 1
-let g:previm_custom_css_path = '~/.vim/css/markdown.css'
 
 " for vim-markdown
 let g:vim_markdown_folding_disabled = 1
@@ -446,6 +442,28 @@ augroup floaterm
  au QuitPre * FloatermKill!
 augroup END
 
+" for Vaffle
+" function! VaffleRenderCustomIcon(item)
+"   return WebDevIconsGetFileTypeSymbol(a:item.basename, a:item.is_dir)
+" endfunction
+" let g:vaffle_render_custom_icon = 'VaffleRenderCustomIcon'
+" let g:vaffle_open_selected_split_position = 'topleft'
+" function! s:customize_vaffle_mappings() abort
+"     nmap <buffer> <silent> <Left> <Plug>(vaffle-open-parent)
+"     nmap <buffer> <silent> <Right> <Plug>(vaffle-open-current)
+"     nmap <buffer> <silent> I <Plug>(vaffle-toggle-hidden)
+"     nmap <buffer> <silent> n <Plug>(vaffle-new-file)
+"     nmap <buffer> <silent> N <Plug>(vaffle-mkdir)
+"     nmap <buffer> <silent> r <Plug>(vaffle-refresh)
+"     nmap <buffer> <silent> R <Plug>(vaffle-rename-selected)
+"     nmap <buffer> <silent> D <Plug>(vaffle-delete-selected)
+"     nmap <buffer> <silent> M <Plug>(vaffle-move-selected)
+"     nmap <buffer> <silent> <ESC> <Plug>(vaffle-quit)
+" endfunction
+" augroup vim_vaffle
+"     autocmd FileType vaffle call s:customize_vaffle_mappings()
+" augroup END
+
 " for startify
 let g:startify_files_number = 5
 let g:startify_list_order = [
@@ -458,7 +476,7 @@ let g:startify_list_order = [
         \ ['☺  Bookmarks:'],
         \ 'bookmarks',
         \ ]
-let g:startify_bookmarks = ["~/.vimrc"]
+let g:startify_bookmarks = ["~/.config/nvim/init.vim"]
 let g:startify_custom_header = [
 \'┌───────────────────────────────────────────────┐',
 \'│                                               │',
@@ -475,10 +493,10 @@ let g:startify_custom_header = [
 
 " for vim-which-key
 let g:mapleader = "\<Space>"
-let g:maplocalleader = ','
+let g:which_key_hspace = 2
 let g:which_key_vertical = 0
 let g:which_key_position = 'botright'
-let g:which_key_hspace = 5
+let g:which_key_hspace = 3
 let g:which_key_map = {}
 let g:which_key_map.m = [ ':Startify', 'open Start menu' ]
 let g:which_key_map.r = {
@@ -603,7 +621,7 @@ function! s:smooth_scroll(fn) abort
   let s:smooth_scroll_timer = timer_start(s:stop_time, function('s:' . a:fn), {'repeat' : &scroll/3})
 endfunction
 
-" nnoremap <silent> <C-u> <cmd>call <SID>smooth_scroll('up')<CR>
-" nnoremap <silent> <C-d> <cmd>call <SID>smooth_scroll('down')<CR>
-" vnoremap <silent> <C-u> <cmd>call <SID>smooth_scroll('up')<CR>
-" vnoremap <silent> <C-d> <cmd>call <SID>smooth_scroll('down')<CR>
+nnoremap <silent> <C-u> <cmd>call <SID>smooth_scroll('up')<CR>
+nnoremap <silent> <C-d> <cmd>call <SID>smooth_scroll('down')<CR>
+vnoremap <silent> <C-u> <cmd>call <SID>smooth_scroll('up')<CR>
+vnoremap <silent> <C-d> <cmd>call <SID>smooth_scroll('down')<CR>
