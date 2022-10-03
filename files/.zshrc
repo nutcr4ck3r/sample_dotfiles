@@ -88,10 +88,10 @@ alias ll='ls -lhF $lsoption'
 alias la='ls -aF $lsoption'
 alias lla='ls -lahF $lsoption'
 alias cd='cdls'
-# alias tmux='tmux -2'
 alias w3m='w3m google.com'
-alias ghidra='~/app/ghidra_10.0.3_PUBLIC/ghidraRun'
-alias remnux='sudo docker exec -it rem /bin/bash'
+if type "nvim" > /dev/null 2>&1; then
+  alias vim='nvim $1'
+fi
 bindkey "^K" peco-history-selection
 case ${OSTYPE} in
   darwin*)
@@ -114,12 +114,16 @@ export PATH=${PATH}:$HOME/.nodebrew/current/bin
 export PATH=${PATH}:/usr/local/opt/mysql-client/bin
 
 # for pyenv
-export PYENV_ROOT="$HOME/.pyenv"
-command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/shims:$PATH"
-command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-if [[ $(which pyenv) == 'true' ]] ; then
-  eval "$(pyenv init -)"
-fi
+# export PYENV_ROOT="$HOME/.pyenv"
+# command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/shims:$PATH"
+# command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+# if [[ $(which pyenv) == 'true' ]] ; then
+#   eval "$(pyenv init -)"
+# fi
+
+# for znap
+source ~/zsh_plugins/zsh-snap/znap.zsh
+znap source marlonrichert/zsh-autocomplete
 
 # prompt settings.
 autoload -Uz vcs_info
