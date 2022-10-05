@@ -196,20 +196,8 @@ autocmd ColorScheme * highlight LineNr ctermfg=8 ctermbg=235
 set conceallevel=0
 let g:vim_json_syntax_conceal = 0
 
-" Display column limit '80'
-execute "set colorcolumn=" . join(range(80, 9999), ',')
-highlight ColorColumn guibg=#202020 ctermbg=black
-
 " Disable hilight pairs brackets.
 let loaded_matchparen = 1
-
-" For use Transparency and powerline-shell.
-highlight Normal ctermbg=none
-highlight NonText ctermbg=none
-
-"highlight LineNr ctermbg=none
-highlight Folded ctermbg=none
-highlight EndOfBuffer ctermbg=none
 
 " ------------------------------------------------------------------------------
 " Tab's number settings
@@ -361,7 +349,7 @@ augroup ScrollbarInit
 augroup end
 
 " for toggleterm
-lua require('toggleterm').setup()
+lua require('toggleterm').setup({direction = 'float',})
 autocmd TermEnter term://*toggleterm#*
       \ tnoremap <silent><c-j> <Cmd>exe v:count1 . "ToggleTerm"<CR>
 nnoremap <C-j> :ToggleTerm<CR>
@@ -438,6 +426,10 @@ let g:loaded_netrwPlugin = 1
 lua << EOF
 require('nvim-tree').setup({
         sort_by = "name",
+        update_focused_file = {
+          enable = true,
+          update_root = true,
+        },
         view = {
           adaptive_size = true,
           mappings = {
@@ -744,3 +736,20 @@ colorscheme dogrun
 " colorscheme cosme
 " colorscheme espresso
 
+" ------------------------------------------------------------------------------
+" Additional appearance settings
+" ------------------------------------------------------------------------------
+
+" Make transparent for background
+" highlight Normal      guibg=none
+" highlight NonText     guibg=none
+" highlight LineNr      guibg=none
+" highlight Folded      guibg=none
+" highlight EndOfBuffer guibg=none
+
+" Display column limit '80'
+execute "set colorcolumn=" . join(range(80, 9999), ',')
+" highlight ColorColumn guibg=#202020 ctermbg=black
+" set textwidth=80
+" set colorcolumn=+2
+hi ColorColumn guibg=none guifg=Orange
