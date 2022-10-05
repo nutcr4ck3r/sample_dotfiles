@@ -258,7 +258,7 @@ call plug#begin()
   Plug 'tpope/vim-fugitive'
   Plug 'airblade/vim-gitgutter'
 " for markdown editing
-  Plug 'tyru/open-browser.vim'
+  Plug 'preservim/vim-markdown'
   Plug 'dhruvasagar/vim-table-mode'
   Plug 'mattn/vim-maketable'
   Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install' }
