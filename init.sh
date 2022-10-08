@@ -7,15 +7,16 @@ echo ""
 echo "[i] Install basic tools."
 sudo apt install -y \
   peco xclip source-highlight docker.io docker-compose \
-  gawk tmux unar vim-gtk ripgrep bat wget curl
+  gawk tmux unar vim-gtk ripgrep bat wget curl git
 
 
 ############
 ## neovim ##
 ################################################################################
 # Download and install neovim
+mkdir -p ~/Downloads
 wget https://github.com/neovim/neovim/releases/download/v0.7.2/nvim-linux64.deb \
-  -O ~/Downloads
+  -O ~/Downloads/nvim-linux64.deb
 sudo dpkg -i ~/Downloads/nvim-linux64.deb
 
 # Install packages

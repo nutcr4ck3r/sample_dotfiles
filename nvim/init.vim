@@ -355,7 +355,7 @@ autocmd TermEnter term://*toggleterm#*
 nnoremap <C-j> :ToggleTerm<CR>
 
 " for mini.nvim
-lua require('mini.comment').setup()
+lua require('mini.comment').setup({mappings={comment='<C-_>', comment_line='<C-_>'}})
 lua require('mini.cursorword').setup()
 highlight MiniCursorword gui=nocombine guibg=#444444
 highlight! MiniCursorwordCurrent gui=nocombine guifg=NONE guibg=NONE
