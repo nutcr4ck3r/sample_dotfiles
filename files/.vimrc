@@ -9,41 +9,79 @@ set autoread              " Reload file automatically when editing file was modi
 set hidden                " Enable to open other file when editing buffer.
 set clipboard=unnamed     " Ebable allignment to clipboard.
 set belloff=all           " Disable beep.
-set timeoutlen=300        " Timeout time untill key input.
+set timeoutlen=400        " Timeout time untill key input.
 set updatetime=200        " Set update time for gitgutter sign updating
 set signcolumn=yes        " Always show a sign column to show lsp signs
 set mouse=a               " Enable mouse controls in nomal, visual, insert and command mode.
 filetype plugin indent on " Enable filetree-view (netrw)
-autocmd!
-augroup vimrc             " to load .vimrc automaticaly when change it.
- au BufWritePost *.vimrc source ~/.vimrc
-augroup END
-if has("autocmd")
-augroup redhat            " to save the last cursor position.
-    " In text files, always limit the width of text to 78 characters
-    autocmd BufRead *.txt set tw=78
-    " When editing a file, always jump to the last cursor position
-    autocmd BufReadPost *
-    \ if line("'\"") > 0 && line ("'\"") <= line("$") |
-    \   exe "normal! g'\"" |
-    \ endif
-  augroup END
-endif
 
-" Tree view type (like ls-la)
-  let g:netrw_liststyle=1
-" Hide Headder
-  let g:netrw_banner=0
-" File-Size format (use K, M, G)
-  let g:netrw_sizestyle="H"
-" Date format (use yyyy/mm/dd hh:mm:ss
-  let g:netrw_timefmt="%Y/%m/%d(%a) %H:%M:%S"
-" display preview-window by vertical-split
-  let g:netrw_preview=1
+" ------------------------------------------------------------------------------
+" netrw
+" ------------------------------------------------------------------------------
+set nocp                  " Disable 'compatible'
+filetype plugin on        " Enable plugin
+let g:netrw_preview=1     " Split preview window
+let g:netrw_liststyle=3   " tree style
+let g:netrw_keepdir = 0   " Set current dir at tree opening
+let g:netrw_banner = 0    " Delete banner
+" window size
+let g:netrw_winsize = 25
+let g:netrw_browse_split = 4
+
+" netrw toggle function
+let g:NetrwIsOpen=0
+function! ToggleNetrw()
+    if g:NetrwIsOpen
+        let i = bufnr("$")
+        while (i >= 1)
+            if (getbufvar(i, "&filetype") == "netrw")
+                silent exe "bwipeout " . i
+            endif
+            let i-=1
+        endwhile
+        let g:NetrwIsOpen=0
+    else
+        let g:NetrwIsOpen=1
+        silent Vex
+    endif
+endfunction
+
+" Set shortcut key
+noremap <silent><C-o> :call ToggleNetrw()<CR>
+
+" ------------------------------------------------------------------------------
+" Auto commands
+" ------------------------------------------------------------------------------
+autocmd!
+" to load .vimrc automaticaly when change it.
+au BufWritePost *.vimrc source ~/.vimrc
+" to save the last cursor position.
+autocmd BufReadPost *
+\ if line("'\"") > 0 && line ("'\"") <= line("$") |
+\   exe "normal! g'\"" |
+\ endif
+
+" to save & restore current session
+augroup session
+fu! SaveSess()
+execute 'mksession! ~/.session.vim'
+endfunction
+fu! RestoreSess()
+if !empty(glob('~/.session.vim'))
+    execute 'so ~/.session.vim'
+endif
+endfunction
+autocmd VimLeave * call SaveSess()
+autocmd VimEnter * nested call RestoreSess()
+augroup END
 
 " ------------------------------------------------------------------------------
 " Custom Keybind.
 " ------------------------------------------------------------------------------
+" Kill all
+nnoremap <silent> @@ :wqa<CR>
+nnoremap <silent> !! :qa!<CR>
+
 " Enable jj key for exit insert mode.
 inoremap <silent> jj <ESC>
 vnoremap <silent> nn <ESC>
@@ -56,10 +94,10 @@ nnoremap <S-k> <C-y>
 nnoremap <S-j> <C-e>
 
 " Home / End
-nnoremap 0 $
-nnoremap ` 0
-vnoremap 0 $
-vnoremap ` 0
+nnoremap - $
+nnoremap _ 0
+vnoremap - $
+vnoremap _ 0
 
 " Jump to previous word's head/end.
 nnoremap <S-w> b
@@ -120,7 +158,6 @@ nnoremap <silent> zH zM
 nnoremap <silent> zl zr
 nnoremap <silent> zL zR
 
-
 " ------------------------------------------------------------------------------
 " Input settings.
 " ------------------------------------------------------------------------------
@@ -133,13 +170,24 @@ set wildmode=list:longest       " Complement file name when input command.
 " Appearance settings.
 " ------------------------------------------------------------------------------
 set t_Co=256                           " Enable 256 colors.
+set termguicolors                      " Enable termguicolors
 set cursorline                         " Hilight current line.
 set nowrap                             " Disable line wrap.
 syntax enable                          " Enable syntax hilight.
 
+" Status & command line
+set cmdheight=2
+set laststatus=2
+set showcmd
+set display=lastline
+
 " Display line numbers.
 set number
-autocmd ColorScheme * highlight LineNr ctermfg=8 ctermbg=235
+
+" Hilight pairs brackets.
+set showmatch
+set matchtime=1
+set matchpairs& matchpairs+=<:>
 
 " Display double quotation in json file.
 set conceallevel=0
@@ -147,22 +195,8 @@ let g:vim_json_syntax_conceal = 0
 
 " Display column limit '80'
 execute "set colorcolumn=" . join(range(81, 9999), ',')
-highlight ColorColumn guibg=#202020 ctermbg=black
 
-" Hilight pairs brackets.
-" set showmatch
-" set matchtime=1
-" set matchpairs& matchpairs+=<:>
-let loaded_matchparen = 1
-
-" For use Transparency and powerline-shell.
-highlight Normal ctermbg=none
-highlight NonText ctermbg=none
-
-"highlight LineNr ctermbg=none
-highlight Folded ctermbg=none
-highlight EndOfBuffer ctermbg=none
-
+" Cursor shaping
 if has('vim_starting')
     " Use line type cursol on insert mode.
     let &t_SI .= "\e[6 q"
@@ -171,9 +205,6 @@ if has('vim_starting')
     " Use blink line cursol on replace mode.
     let &t_SR .= "\e[4 q"
 endif
-
-" Colorscheme settings.
-" colorscheme pablo
 
 " ------------------------------------------------------------------------------
 " Tab's number settings.
@@ -192,418 +223,922 @@ set wrapscan    " Go file head when search is arrive at EOF
 set hlsearch    " Hilight search strings.
 
 " ------------------------------------------------------------------------------
-" vim-plug
-"
-" LSP control
-"   Install Plugins => :PlugInstall
-"   Update Plugins => :PlugUpdate
-"   Install Language server => :LspInstallServer
-"   Check & install Lnaguage servers => :LspManageServers (to install: press `i`)
-"
-"   Format Code => :LspDocumentFormatSync (Ctrl+i)
-"   Rename variable names => LspRename (F2)
-"   View hover informations => LspHover (Shift+k)
-"
-"   Jump to a definition => LspDefinition (Ctrl+k)
-"   Jump to next diagnostic => LspNextDiagnostic (fd)
-"   Jump to next warning => LspNextDiagnostic (fnw)
-"   Jump to next error => LspNextDiagnostic (fne)
-"
-" Open NERDtree => NERDTreeToggle (Shortcut:Ctrl+o)
-"   Toggle hidden files showing => shift+i
-"
-" Toggle comment out
-"   for block = gc, for a line = gcc
-"
-" Toggle minimap
-"   Toggle minimap => :MinimapToggle (fm)
-"
-" Preview a markdown file
-"   Open preview with browser => :PrevimOpen
-"
-" Show Toc on a markdown file
-"   on Vertical => :Toc (f -> o) , on Horizontal => :Toch
-"
-" vim-table-mode
-"   Toggle table mode :TableModeToggle (Ctrl+t)
-"
-" Make markdown table from csv syntax
-"   Make table => Select lines and :MakeTable
-"   Make table with top index => Select lines and :MakeTable!
-"   Make CSV from markdown table => :UnmakeTable
-"
-" Vim-Surround
-"   Surround with `...` => Select word in visual mode and press S -> `
-"   Delete surround `...` => press ds -> ` at inner words in `...`
-"   Change surround from `...` to (...) => press cs`( at inner words in `...`
-"
-" Win-Resizer
-"   Into Resize-mode: fe
-"   Change mode: e, End any-mode: enter
-"
-" Taglist
-"   Show taglist => :Tlist (Ctrl + p)
+" Colorscheme / copied dogrun
 " ------------------------------------------------------------------------------
-call plug#begin()
-" utilities
-  Plug 'scrooloose/nerdtree'
-  Plug 'simeji/winresizer'
-  Plug 'voldikss/vim-floaterm'
-  Plug 'mhinz/vim-startify'
-  Plug 'liuchengxu/vim-which-key'
-" for using LSP and snippets
-  Plug 'prabirshrestha/asyncomplete.vim'
-  Plug 'prabirshrestha/asyncomplete-lsp.vim'
-  Plug 'prabirshrestha/vim-lsp'
-  Plug 'mattn/vim-lsp-settings'
-  Plug 'mattn/vim-lsp-icons'
-  Plug 'hrsh7th/vim-vsnip'
-  Plug 'hrsh7th/vim-vsnip-integ'
-  Plug 'rafamadriz/friendly-snippets'
-" for formatting
-  Plug 'prettier/vim-prettier', {
-  \ 'do': 'yarn install',
-    \ 'for': ['python', 'javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql', 'markdown', 'vue', 'svelte', 'yaml', 'html'] }
-" for automation
-  Plug 'tpope/vim-commentary'
-  Plug 'jiangmiao/auto-pairs'
-  Plug 'ConradIrwin/vim-bracketed-paste'
-  Plug 'tpope/vim-surround'
-  Plug 'tpope/vim-repeat'
-" for appearance
-  Plug 'bronson/vim-trailing-whitespace'
-  " Plug 'yggdroot/hipairs'
-  Plug 'wfxr/minimap.vim'
-  Plug 'lilydjwg/colorizer'
-  Plug 'Yggdroot/indentLine'
-  Plug 'vim-airline/vim-airline'
-  Plug 'vim-airline/vim-airline-themes'
-  Plug 'ryanoasis/vim-devicons'
-" for searching and tags
-  Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
-  Plug 'junegunn/fzf.vim'
-  Plug 'majutsushi/tagbar'
-  Plug 'szw/vim-tags'
-" for Git
-  Plug 'tpope/vim-fugitive'
-  Plug 'airblade/vim-gitgutter'
-" for markdown editing
-  Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install' }
-  Plug 'tyru/open-browser.vim'
-  Plug 'dhruvasagar/vim-table-mode'
-  Plug 'mattn/vim-maketable'
-" for HTML
-  Plug 'alvan/vim-closetag'
-" for JSON
-  Plug 'elzr/vim-json'
-" for Dockerfile
-  Plug 'ekalinin/Dockerfile.vim'
-" for Syntax hilight
-  Plug 'yuezk/vim-js'
-  Plug 'HerringtonDarkholme/yats.vim'
-  Plug 'MaxMEllon/vim-jsx-pretty'
-  Plug 'pangloss/vim-javascript'
-  Plug 'vim-python/python-syntax'
-  Plug 'preservim/vim-markdown'
-  Plug 'rhysd/vim-gfm-syntax'
-  Plug 'mechatroner/rainbow_csv'
-" Color schemes
-  Plug 'crusoexia/vim-monokai'
-  Plug 'ghifarit53/tokyonight-vim'
-  Plug 'joshdick/onedark.vim'
-  Plug 'arcticicestudio/nord-vim'
-  Plug 'wadackel/vim-dogrun'
-  Plug 'tomasiser/vim-code-dark'
-  Plug 'romgrk/doom-one.vim'
-  Plug 'jonathanfilip/vim-lucius'
-  Plug 'beikome/cosme.vim'
-  Plug 'gmoe/vim-espresso'
-call plug#end()
-
-" Plugin's keybind
-" Toggles
-nnoremap <C-o>   :NERDTreeToggle<CR>
-nnoremap <silent> tm :MinimapToggle<CR>
-nnoremap <silent> tp :TagbarToggle<CR>
-nnoremap <silent> tr :WinResizerStartResize<CR>
-
-" Markdown
-nnoremap <silent> mm :MakeTable<CR>
-nnoremap <silent> mu :UnmakeTable<CR>
-nnoremap <silent> mo :Toc<CR>
-nnoremap <silent> mp :MarkdownPreviewc<CR>
-nnoremap <silent> mt :TableModeToggle<CR>
-
-" FZF
-nnoremap <silent> rf :Files<CR>
-nnoremap <silent> rb :BLines<CR>
-nnoremap <silent> rg :Rg<CR>
-nnoremap <silent> rh :History<CR>
-
-" LSP
-nnoremap <C-i>   :LspDocumentFormatSync<CR>
-nnoremap <C-k>   :LspDefinition<CR>
-nnoremap <F2>    :LspRename<CR>
-nnoremap <F12>   :LspHover<CR>
-nnoremap <silent> gr :LspReferences<CR>
-nnoremap <silent> gd :LspDocumentDiagnostics<CR>
-nnoremap <silent> gn :LspNextDiagnostic<CR>
-nnoremap <silent> gN :LspPreviousDiagnostic<CR>
-nnoremap <silent> gw :LspNextWarning<CR>
-nnoremap <silent> ge :LspNextError<CR>
-
-imap <expr> <Tab> vsnip#available(1)   ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
-smap <expr> <Tab> vsnip#available(1)   ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
-imap <expr> <S-Tab> vsnip#jumpable(-1) ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
-smap <expr> <S-Tab> vsnip#jumpable(-1) ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
-inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
-inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
-
-" Plugin's settings
-" for winresizer
-let g:winresizer_start_key = '<C-`>'
-
-" for LSP & autocompletion
-let g:lsp_diagnostics_enabled = 1
-let g:lsp_diagnostics_echo_cursor = 1
-let g:lsp_signature_help_enabled = 0
-let g:lsp_diagnostics_highlights_delay = 100
-let g:lsp_diagnostics_signs_delay = 100
-let g:lsp_diagnostics_virtual_text_delay = 100
-let g:asyncomplete_auto_popup = 1
-let g:asyncomplete_auto_completeopt = 1
-let g:asyncomplete_popup_delay = 50
-let g:lsp_text_edit_enabled = 1
-
-" for vim-airline
-let g:airline_theme = 'violet'
-let g:airline#extensions#tabline#enabled = 1
-let g:airline_powerline_fonts = 0
-
-" for previm
-let g:previm_enable_realtime = 1
-let g:previm_disable_default_css = 1
-let g:previm_custom_css_path = '~/.vim/css/markdown.css'
-
-" for vim-markdown
-let g:vim_markdown_folding_disabled = 1
-let g:vim_markdown_conceal = 0
-let g:vim_markdown_conceal_code_blocks = 0
-let g:vim_markdown_toc_autofit = 1
-
-" for vim-table_mode
-let g:table_mode_enable = 1
-
-let g:python_highlight_all = 1
-
-" for vim-rainbow
-let g:rainbow_active = 1
-let g:rainbow_guifgs = ['RoyalBlue3', 'DarkOrange3', 'DarkOrchid3', 'FireBrick']
-let g:rainbow_ctermfgs = ['lightblue', 'lightgreen', 'yellow', 'red', 'magenta']
-
-" for hipairs
-" let g:hiPairs_hl_matchPair = { 'ctermbg' : 'black',
-"             \                  'ctermfg' : 'white',
-"             \                  'term'    : 'bold',
-"             \                  'cterm'   : 'bold',
-"             \                  'gui'     : 'bold',
-"             \                  'guifg'   : 'Yellow',
-"             \                  'guibg'   : 'Black' }
-" function! CheckFileType()
-"   if &filetype == 'markdown'
-"     :HiPairsDisable
-"   else
-"     :HiPairsEnable
-"   endif
-" endfunction
-" au BufEnter,BufRead,BufNewFile * call CheckFileType()
-
-" for vim-closetag
-let g:closetag_filenames = '*.html, *.htm, *.js'
-set termguicolors
-let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum" " Font color
-let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum" " Background color
-
-" for vim-tags
-if has("mac")
-  let Tlist_Ctags_Cmd = "/usr/local/bin/ctags"
-elseif has("unix")
-  let Tlist_Ctags_Cmd = "/usr/bin/ctags"
+if &background !=# 'dark'
+  set background=dark
 endif
-let Tlist_Show_One_File = 1
-let Tlist_Exit_OnlyWindow = 1
-let Tlist_Use_Right_Window = 1
 
-" for minimap.vim
-let g:minimap_width = 10
-let g:minimap_auto_start = 0
-let g:minimap_auto_start_win_enter = 1
+if exists('g:colors_name')
+  hi clear
+endif
 
-" for vim-floaterm
-let g:floaterm_keymap_toggle = '<C-j>'
-augroup floaterm
- au QuitPre * FloatermKill!
-augroup END
+if exists('g:syntax_on')
+  syntax reset
+endif
 
-" for startify
-let g:startify_files_number = 5
-let g:startify_list_order = [
-        \ ['♻  Recently used files:'],
-        \ 'files',
-        \ ['♲  Recently used files (Current directory):'],
-        \ 'dir',
-        \ ['⚑  Sessions:'],
-        \ 'sessions',
-        \ ['☺  Bookmarks:'],
-        \ 'bookmarks',
-        \ ]
-let g:startify_bookmarks = ["~/.vimrc"]
-let g:startify_custom_header = [
-\'┌───────────────────────────────────────────────┐',
-\'│                                               │',
-\'│                   - V I M -                   │',
-\'│                                               │',
-\'│                 "Vi IMproved"                 │',
-\'│                                               │',
-\"│ Simplicity's the most valuable thing in life. │",
-\'│                                               │',
-\'│        There is NOT substitute for it.        │',
-\'│                                               │',
-\'└───────────────────────────────────────────────┘',
-\]
+hi Normal guifg=#9ea3c0 ctermfg=146 guibg=#222433 ctermbg=235
+hi Delimiter guifg=#8085a6 ctermfg=103
+hi NonText guifg=#363859 ctermfg=60 guibg=NONE ctermbg=NONE
+hi VertSplit guifg=#32364c ctermfg=237 guibg=NONE ctermbg=NONE gui=NONE cterm=NONE
+hi LineNr guifg=#32364c ctermfg=237 guibg=NONE ctermbg=NONE gui=NONE cterm=NONE
+hi EndOfBuffer guifg=#363859 ctermfg=60 guibg=NONE ctermbg=NONE gui=NONE cterm=NONE
+hi Comment guifg=#545c8c ctermfg=60 gui=NONE cterm=NONE
+hi Cursor guifg=#222433 ctermfg=235 guibg=#9ea3c0 ctermbg=146
+hi CursorIM guifg=#222433 ctermfg=235 guibg=#9ea3c0 ctermbg=146
+hi SignColumn guifg=#545c8c ctermfg=60 guibg=NONE ctermbg=NONE
+hi ColorColumn guibg=#2a2c3f ctermbg=236 gui=NONE cterm=NONE
+hi CursorColumn guibg=#2a2c3f ctermbg=236 gui=NONE cterm=NONE
+hi CursorLine guibg=#2a2c3f ctermbg=236 gui=NONE cterm=NONE
+hi CursorLineNr guifg=#535f98 ctermfg=61 guibg=NONE ctermbg=NONE gui=NONE cterm=NONE
+hi Conceal guifg=#ac8b83 ctermfg=138 guibg=#222433 ctermbg=235 gui=NONE cterm=NONE
+hi NormalFloat guifg=#9ea3c0 ctermfg=146 guibg=#32364c ctermbg=237 gui=NONE cterm=NONE
+hi Folded guifg=#666c99 ctermfg=60 guibg=#32364c ctermbg=237 gui=NONE cterm=NONE
+hi FoldColumn guifg=#32364c ctermfg=237 guibg=NONE ctermbg=NONE gui=NONE cterm=NONE
+hi MatchParen guibg=#000000 guifg=#b871b8 ctermbg=236
+hi Directory guifg=#a8a384 ctermfg=144
+hi Underlined gui=underline cterm=underline
+hi String guifg=#7cbe8c ctermfg=108
+hi Statement guifg=#929be5 ctermfg=104 gui=NONE cterm=NONE
+hi Label guifg=#929be5 ctermfg=104 gui=NONE cterm=NONE
+hi Function guifg=#929be5 ctermfg=104 gui=NONE cterm=NONE
+hi Constant guifg=#73c1a9 ctermfg=79
+hi Boolean guifg=#73c1a9 ctermfg=79
+hi Number guifg=#73c1a9 ctermfg=79
+hi Float guifg=#73c1a9 ctermfg=79
+hi Title guifg=#a8a384 ctermfg=144 gui=bold cterm=bold
+hi Keyword guifg=#ac8b83 ctermfg=138
+hi Identifier guifg=#ac8b83 ctermfg=138
+hi Exception guifg=#a8a384 ctermfg=144
+hi Type guifg=#a8a384 ctermfg=144 gui=NONE cterm=NONE
+hi TypeDef guifg=#a8a384 ctermfg=144 gui=NONE cterm=NONE
+hi PreProc guifg=#929be5 ctermfg=104
+hi Special guifg=#b871b8 ctermfg=133
+hi SpecialKey guifg=#b871b8 ctermfg=133
+hi SpecialChar guifg=#b871b8 ctermfg=133
+hi SpecialComment guifg=#b871b8 ctermfg=133
+hi Error guifg=#dc6f79 ctermfg=167 guibg=#222433 ctermbg=235 gui=bold cterm=bold
+hi ErrorMsg guifg=#dc6f79 ctermfg=167 guibg=NONE ctermbg=NONE gui=bold cterm=bold
+hi WarningMsg guifg=#ac8b83 ctermfg=138 gui=bold cterm=bold
+hi MoreMsg guifg=#73c1a9 ctermfg=79
+hi Todo guifg=#a8a384 ctermfg=144 guibg=NONE ctermbg=NONE gui=bold cterm=bold
+hi Pmenu guifg=#9ea3c0 ctermfg=146 guibg=#32364c ctermbg=237
+hi PmenuSel guifg=#9ea3c0 ctermfg=146 guibg=#424865 ctermbg=60
+hi PmenuSbar guibg=#292c3f ctermbg=236
+hi PmenuThumb guibg=#464f7f ctermbg=60
+hi Visual guibg=#363e7f ctermbg=61 gui=NONE cterm=NONE
+hi Search guifg=#a6afff ctermfg=147 guibg=#6471e5 ctermbg=63
+hi IncSearch guifg=#a4b2ff ctermfg=147 guibg=#4754cb ctermbg=62 gui=NONE cterm=NONE
+hi Question guifg=#73c1a9 ctermfg=79 gui=bold cterm=bold
+hi WildMenu guifg=#222433 ctermfg=235 guibg=#929be5 ctermbg=104
+hi SpellBad guifg=#dc6f79 ctermfg=167 gui=underline cterm=underline
+hi SpellCap gui=underline cterm=underline
+hi SpellLocal guifg=#dc6f79 ctermfg=167 gui=underline cterm=underline
+hi SpellRare guifg=#a8a384 ctermfg=144 gui=underline cterm=underline
+hi DiffAdd guibg=#1c394b ctermbg=237 gui=bold cterm=bold
+hi DiffChange guibg=#26463b ctermbg=23 gui=bold cterm=bold
+hi DiffDelete guifg=#d2d9ff ctermfg=189 guibg=#5e3e5e ctermbg=96 gui=bold cterm=bold
+hi DiffText guibg=#28795c ctermbg=29 gui=NONE cterm=NONE
+hi QuickFixLine guifg=#9ea3c0 ctermfg=146 guibg=#363e7f ctermbg=61
+hi StatusLine guifg=#757aa5 ctermfg=103 guibg=#2a2c3f ctermbg=236 gui=bold cterm=bold
+hi StatusLineTerm guifg=#757aa5 ctermfg=103 guibg=#2a2c3f ctermbg=236 gui=bold cterm=bold
+hi StatusLineNC guifg=#4b4e6d ctermfg=60 guibg=#282a3a ctermbg=235 gui=NONE cterm=NONE
+hi StatusLineTermNC guifg=#4b4e6d ctermfg=60 guibg=#282a3a ctermbg=235 gui=NONE cterm=NONE
+hi TabLine guifg=#757aa5 ctermfg=103 guibg=#2a2c3f ctermbg=236 gui=NONE cterm=NONE
+hi TabLineFill guifg=#757aa5 ctermfg=103 guibg=#2a2c3f ctermbg=236 gui=NONE cterm=NONE
+hi TabLineSel guifg=#222433 ctermfg=235 guibg=#929be5 ctermbg=104 gui=bold cterm=bold
+hi qfFileName guifg=#73c1a9 ctermfg=79
+hi qfLineNr guifg=#545c8c ctermfg=60
+hi DiagnosticError guifg=#dc6f79 ctermfg=167
+hi DiagnosticVirtualTextError guifg=#dc6f79 ctermfg=167 gui=bold cterm=bold
+hi DiagnosticUnderlineError guifg=#dc6f79 ctermfg=167 gui=underline cterm=underline
+hi DiagnosticWarn guifg=#ac8b83 ctermfg=138
+hi DiagnosticVirtualTextWarn guifg=#ac8b83 ctermfg=138 gui=bold cterm=bold
+hi DiagnosticUnderlineWarn guifg=#ac8b83 ctermfg=138 gui=underline cterm=underline
+hi DiagnosticInfo guifg=#82dabf ctermfg=115
+hi DiagnosticVirtualTextInfo guifg=#545c8c ctermfg=60 gui=bold cterm=bold
+hi DiagnosticUnderlineInfo gui=underline cterm=underline
+hi DiagnosticHint guifg=#82dabf ctermfg=115
+hi DiagnosticVirtualTextHint guifg=#545c8c ctermfg=60 gui=bold cterm=bold
+hi DiagnosticUnderlineHint gui=underline cterm=underline
+hi htmlTag guifg=#8085a6 ctermfg=103
+hi htmlEndTag guifg=#8085a6 ctermfg=103
+hi htmlSpecialTagName guifg=#ac8b83 ctermfg=138
+hi htmlArg guifg=#8085a6 ctermfg=103
+hi jsonQuote guifg=#8085a6 ctermfg=103
+hi yamlBlockMappingKey guifg=#929be5 ctermfg=104
+hi yamlAnchor guifg=#b871b8 ctermfg=133
+hi pythonStatement guifg=#ac8b83 ctermfg=138
+hi pythonBuiltin guifg=#59b6b6 ctermfg=73
+hi pythonRepeat guifg=#ac8b83 ctermfg=138
+hi pythonOperator guifg=#ac8b83 ctermfg=138
+hi pythonDecorator guifg=#b871b8 ctermfg=133
+hi pythonDecoratorName guifg=#b871b8 ctermfg=133
+hi zshVariableDef guifg=#929be5 ctermfg=104
+hi zshFunction guifg=#929be5 ctermfg=104
+hi zshKSHFunction guifg=#929be5 ctermfg=104
+hi cPreCondit guifg=#ac8b83 ctermfg=138
+hi cIncluded guifg=#b871b8 ctermfg=133
+hi cStorageClass guifg=#ac8b83 ctermfg=138
+hi cppStructure guifg=#b871b8 ctermfg=133
+hi cppSTLnamespace guifg=#ac8b83 ctermfg=138
+hi csStorage guifg=#ac8b83 ctermfg=138
+hi csModifier guifg=#929be5 ctermfg=104
+hi csClass guifg=#929be5 ctermfg=104
+hi csClassType guifg=#b871b8 ctermfg=133
+hi csNewType guifg=#ac8b83 ctermfg=138
+hi rubyConstant guifg=#ac8b83 ctermfg=138
+hi rubySymbol guifg=#929be5 ctermfg=104
+hi rubyBlockParameter guifg=#929be5 ctermfg=104
+hi rubyClassName guifg=#b871b8 ctermfg=133
+hi rubyInstanceVariable guifg=#b871b8 ctermfg=133
+hi typescriptImport guifg=#929be5 ctermfg=104
+hi typescriptDocRef guifg=#545c8c ctermfg=60 gui=underline cterm=underline
+hi mkdHeading guifg=#545c8c ctermfg=60
+hi mkdLink guifg=#929be5 ctermfg=104
+hi mkdCode guifg=#929be5 ctermfg=104
+hi mkdCodeStart guifg=#929be5 ctermfg=104
+hi mkdCodeEnd guifg=#929be5 ctermfg=104
+hi mkdCodeDelimiter guifg=#929be5 ctermfg=104
+hi tomlTable guifg=#929be5 ctermfg=104
+hi rustModPath guifg=#929be5 ctermfg=104
+hi rustTypedef guifg=#929be5 ctermfg=104
+hi rustStructure guifg=#929be5 ctermfg=104
+hi rustMacro guifg=#929be5 ctermfg=104
+hi rustExternCrate guifg=#929be5 ctermfg=104
+hi graphqlStructure guifg=#b871b8 ctermfg=133
+hi graphqlDirective guifg=#b871b8 ctermfg=133
+hi graphqlName guifg=#929be5 ctermfg=104
+hi graphqlTemplateString guifg=#9ea3c0 ctermfg=146
+hi vimfilerOpenedFile guifg=#6f78be ctermfg=104
+hi vimfilerClosedFile guifg=#6f78be ctermfg=104
+hi vimfilerNonMark guifg=#73c1a9 ctermfg=79
+hi vimfilerLeaf guifg=#73c1a9 ctermfg=79
+hi DefxIconsMarkIcon guifg=#6f78be ctermfg=104 gui=NONE cterm=NONE
+hi DefxIconsDirectory guifg=#6f78be ctermfg=104 gui=NONE cterm=NONE
+hi DefxIconsParentDirectory guifg=#6f78be ctermfg=104 gui=NONE cterm=NONE
+hi DefxIconsSymlinkDirectory guifg=#73c1a9 ctermfg=79 gui=NONE cterm=NONE
+hi DefxIconsOpenedTreeIcon guifg=#6f78be ctermfg=104 gui=NONE cterm=NONE
+hi DefxIconsNestedTreeIcon guifg=#6f78be ctermfg=104 gui=NONE cterm=NONE
+hi DefxIconsClosedTreeIcon guifg=#6f78be ctermfg=104 gui=NONE cterm=NONE
+hi Defx_git_Untracked guifg=#929be5 ctermfg=104 gui=NONE cterm=NONE
+hi Defx_git_Ignored guifg=#545c8c ctermfg=60 gui=NONE cterm=NONE
+hi Defx_git_Unknown guifg=#545c8c ctermfg=60 gui=NONE cterm=NONE
+hi Defx_git_Renamed guifg=#26463b ctermfg=23
+hi Defx_git_Modified guifg=#26463b ctermfg=23
+hi Defx_git_Unmerged guifg=#b871b8 ctermfg=133
+hi Defx_git_Deleted guifg=#5e3e5e ctermfg=96
+hi Defx_git_Staged guifg=#73c1a9 ctermfg=79
+hi FernBranchSymbol guifg=#6f78be ctermfg=104 gui=NONE cterm=NONE
+hi FernBranchText guifg=#929be5 ctermfg=104 gui=NONE cterm=NONE
+hi FernLeafSymbol guifg=#548e7c ctermfg=66 gui=NONE cterm=NONE
+hi FernLeafText guifg=#9ea3c0 ctermfg=146 gui=NONE cterm=NONE
+hi FernMarked guifg=#59b6b6 ctermfg=73 gui=NONE cterm=NONE
+hi GitGutterAdd guifg=#7cbe8c ctermfg=108
+hi GitGutterChange guifg=#a8a384 ctermfg=144
+hi GitGutterDelete guifg=#b871b8 ctermfg=133
+hi GitGutterChangeDelete guifg=#28795c ctermfg=29
+hi fugitiveHeader guifg=#73c1a9 ctermfg=79 gui=bold cterm=bold
+hi ALEWarningSign guifg=#ac8b83 ctermfg=138 gui=bold cterm=bold
+hi ALEInfoSign guifg=#82dabf ctermfg=115 gui=NONE cterm=NONE
+hi CocErrorSign guifg=#dc6f79 ctermfg=167 gui=bold cterm=bold
+hi CocWarningSign guifg=#ac8b83 ctermfg=138 gui=bold cterm=bold
+hi CocInfoSign guifg=#82dabf ctermfg=115 gui=bold cterm=bold
+hi CocHintSign guifg=#82dabf ctermfg=115 gui=bold cterm=bold
+hi LspError guifg=#dc6f79 ctermfg=167
+hi LspErrorText guifg=#dc6f79 ctermfg=167 gui=bold cterm=bold
+hi LspErrorHighlight gui=underline cterm=underline
+hi LspErrorVirtualText guifg=#dc6f79 ctermfg=167 gui=bold cterm=bold
+hi LspWarning guifg=#ac8b83 ctermfg=138
+hi LspWarningText guifg=#ac8b83 ctermfg=138 gui=bold cterm=bold
+hi LspWarningHighlight gui=underline cterm=underline
+hi LspWarningVirtualText guifg=#ac8b83 ctermfg=138 gui=bold cterm=bold
+hi LspInformation guifg=#82dabf ctermfg=115
+hi LspInformationText guifg=#82dabf ctermfg=115 gui=bold cterm=bold
+hi LspInformationHighlight gui=underline cterm=underline
+hi LspInformationVirtualText guifg=#545c8c ctermfg=60 gui=bold cterm=bold
+hi LspHint guifg=#82dabf ctermfg=115
+hi LspHintText guifg=#82dabf ctermfg=115 gui=bold cterm=bold
+hi LspHintHighlight gui=underline cterm=underline
+hi LspHintVirtualText guifg=#545c8c ctermfg=60 gui=bold cterm=bold
+hi LspCodeActionText guifg=#6f78be ctermfg=104 gui=bold cterm=bold
+hi CmpItemAbbr guifg=#9ea3c0 ctermfg=146
+hi CmpItemAbbrMatch guifg=#929be5 ctermfg=104 gui=bold cterm=bold
+hi CmpItemAbbrMatchFuzzy guifg=#929be5 ctermfg=104 gui=bold cterm=bold
+hi CmpItemKind guifg=#8085a6 ctermfg=103
+hi CmpItemKindDefault guifg=#8085a6 ctermfg=103
+hi CmpItemKindText guifg=#8085a6 ctermfg=103
+hi CmpItemKindVariable guifg=#8085a6 ctermfg=103
+hi CmpItemKindKeyword guifg=#8085a6 ctermfg=103
+hi CmpItemKindInterface guifg=#8085a6 ctermfg=103
+hi CmpItemKindFunction guifg=#8085a6 ctermfg=103
+hi CmpItemKindMethod guifg=#8085a6 ctermfg=103
+hi CmpItemKindProperty guifg=#8085a6 ctermfg=103
+hi CmpItemKindUnit guifg=#8085a6 ctermfg=103
+hi TelescopeNormal guifg=#8085a6 ctermfg=103
+hi TelescopeTitle guifg=#929be5 ctermfg=104
+hi TelescopeMatching guifg=#bdc3e6 ctermfg=146 gui=bold cterm=bold
+hi TelescopeBorder guifg=#545c8c ctermfg=60
+hi TelescopePromptPrefix guifg=#73c1a9 ctermfg=79
+hi TelescopePromptCounter guifg=#545c8c ctermfg=60
+hi TelescopeMultiIcon guifg=#a8a384 ctermfg=144
+hi TelescopeMultiSelection guifg=#a8a384 ctermfg=144
+hi CleverFChar guifg=#a6afff ctermfg=147 guibg=#6471e5 ctermbg=63 gui=underline cterm=underline
+hi ConflictMarkerBegin guibg=#548e7c ctermbg=66 gui=bold cterm=bold
+hi ConflictMarkerOurs guibg=#26463b ctermbg=23 gui=NONE cterm=NONE
+hi ConflictMarkerTheirs guibg=#1c394b ctermbg=237 gui=NONE cterm=NONE
+hi ConflictMarkerEnd guibg=#417593 ctermbg=31 gui=bold cterm=bold
+hi ConflictMarkerSeparator guifg=#363859 ctermfg=60 gui=bold cterm=bold
+hi EasyMotionTarget guifg=#a8a384 ctermfg=144 gui=bold cterm=bold
+hi EasyMotionShade guifg=#545c8c ctermfg=60 guibg=#222433 ctermbg=235
+hi EasyMotionIncCursor guifg=#9ea3c0 ctermfg=146 guibg=#222433 ctermbg=235
+hi FidgetTitle guifg=#73c1a9 ctermfg=79 gui=bold cterm=bold
+hi FidgetTask guifg=#545c8c ctermfg=60
+let g:defx_icons_gui_colors = {
+  \ 'brown': 'a9323d',
+  \ 'aqua': '5b9c9c',
+  \ 'blue': '5d8fac',
+  \ 'darkBlue': '557486',
+  \ 'purple': '6f78be',
+  \ 'lightPurple': '959acb',
+  \ 'red': 'c2616b',
+  \ 'beige': '686765',
+  \ 'yellow': '8e8a6f',
+  \ 'orange': 'c59f96',
+  \ 'darkOrange': '79564f',
+  \ 'pink': '9e619e',
+  \ 'salmon': 'ab57ab',
+  \ 'green': '63976f',
+  \ 'lightGreen': '5aa46c',
+  \ 'white': '898da6',
+  \ }
+let g:defx_icons_term_colors = {
+  \ 'brown': 131,
+  \ 'aqua': 73,
+  \ 'blue': 67,
+  \ 'darkBlue': 67,
+  \ 'purple': 104,
+  \ 'lightPurple': 103,
+  \ 'red': 131,
+  \ 'beige': 242,
+  \ 'yellow': 101,
+  \ 'orange': 181,
+  \ 'darkOrange': 95,
+  \ 'pink': 133,
+  \ 'salmon': 133,
+  \ 'green': 65,
+  \ 'lightGreen': 71,
+  \ 'white': 103,
+  \ }
+let g:fzf_colors = {
+  \ 'fg':      ['fg', 'Normal'],
+  \ 'bg':      ['bg', 'Normal'],
+  \ 'hl':      ['fg', 'Comment'],
+  \ 'fg+':     ['fg', 'CursorLine'],
+  \ 'bg+':     ['bg', 'CursorLine'],
+  \ 'hl+':     ['fg', 'Statement'],
+  \ 'info':    ['fg', 'Comment'],
+  \ 'gutter':  ['bg', 'Normal'],
+  \ 'border':  ['fg', 'Ignore'],
+  \ 'prompt':  ['fg', 'Label'],
+  \ 'pointer': ['fg', 'Boolean'],
+  \ 'marker':  ['fg', 'Boolean'],
+  \ 'spinner': ['fg', 'Title'],
+  \ 'header':  ['fg', 'Comment'],
+  \ }
 
-" for vim-which-key
-let g:mapleader = "\<Space>"
-let g:maplocalleader = ','
-let g:which_key_vertical = 0
-let g:which_key_position = 'botright'
-let g:which_key_hspace = 5
-let g:which_key_map = {}
-let g:which_key_map.m = [ ':Startify', 'open Start menu' ]
-let g:which_key_map.r = {
-      \ 'name' : '+Find' ,
-      \ 'b' : [':BLines', 'find Buffer lines (rb)'],
-      \ 'c' : [':Colors', 'find Color schemes'],
-      \ 'C' : [':Commands', 'find Commands'],
-      \ 'f' : [':Files', 'find Files (rf)'],
-      \ 'h' : [':History', 'find Recetly used files (rh)'],
-      \ 'k' : [':Maps:', 'find Key mappings in normalmode'],
-      \ 'H' : [':History:', 'find Command histories'],
-      \ 'r' : [':Rg', 'find Texts (rg)'],
-      \ }
-let g:which_key_map.g = {
-      \ 'name' : '+LSP' ,
-      \ 'd' : [':LspDocumentDiagnostics', 'display Diagnostics list (gd)'],
-      \ 'D' : [':LspDefinition', 'goto Definition point (<C-k>)'],
-      \ 'e' : [':LspNextError', 'jump to next Error (ge)'],
-      \ 'f' : [':LspDocumentFormat', 'format Document (gf)'],
-      \ 'h' : [':LspHover', 'view a Hover information (<F12>)'],
-      \ 'n' : [':LspNextDiagnostic', 'jump to next Diagnostics (gn)'],
-      \ 'N' : [':LspNextDiagnostic', 'jump to previous Diagnostics (gN)'],
-      \ 'p' : [':Prettier', 'format Document with Prettier (gp)'],
-      \ 'r' : [':LspReferences', 'view References list (gr)'],
-      \ 'R' : [':LspRename', 'rename Variable name (<F2>)'],
-      \ 'w' : [':LspNextWarning', 'jump to next Warning (gw)'],
-      \ }
-let g:which_key_map.t = {
-      \ 'name' : '+Toggles' ,
-      \ 'c' : ['', 'which_key_ignore'],
-      \ 'm' : [':MinimapToggle', 'toggle Minimap (tm)'],
-      \ 'n' : [':NERDTreeToggle', 'toggle NERDTree (<C-o>)'],
-      \ 'p' : [':TagbarToggle', 'toggle Tagbar (tp)'],
-      \ 'r' : [':WinResizerStartResize', 'start WinResizer (tr)'],
-      \ '?' : ['', 'which_key_ignore'],
-      \ 'd' : ['', 'which_key_ignore'],
-      \ 'f' : ['', 'which_key_ignore'],
-      \ 'i' : ['', 'which_key_ignore'],
-      \ 's' : ['', 'which_key_ignore'],
-      \ 't' : ['', 'which_key_ignore'],
-      \ }
-let g:which_key_map.m = {
-      \ 'name' : '+Markdown' ,
-      \ 'm' : [':MakeTable', 'create a Markdown table from CSV (mm)'],
-      \ 'u' : [':UnmakeTable', 'create CSV from a Markdown table (mu)'],
-      \ 't' : [':TablemodeToggle', 'toggle Tablemode (mt)'],
-      \ 'o' : [':Toc', 'display TOC (mo)'],
-      \ 'p' : [':MarkdownPreview', 'preview Markdown file in browser (mp)'],
-      \ }
-let g:which_key_map.z = {
-      \ 'name' : '+Fold/Open' ,
-      \ 'f' : ['zf', 'create a Folding on Selections'],
-      \ 'k' : ['zk', 'collapse Folding'],
-      \ 'j' : ['zj', 'open Folding'],
-      \ 'J' : ['zJ', 'open All folding '],
-      \ 'h' : ['zh', 'collapse Foldings in the file'],
-      \ 'H' : ['zH', 'collapse All foldings in the file'],
-      \ 'l' : ['zl', 'open Foldings in the file'],
-      \ 'L' : ['zL', 'open All foldings in the file'],
-      \ }
-let g:which_key_map.h = [ '', 'which_key_ignore' ]
-let g:which_key_map.p = [ '', 'which_key_ignore' ]
-nnoremap <silent> <leader> :<C-u>WhichKey '<Space>'<CR>
-vnoremap <silent> <leader> :<C-u>WhichKeyVisual '<Space>'<CR>
+" ------------------------------------------------------------------------------
+" Override colorscheme
+" ------------------------------------------------------------------------------
+" Display trail spacing
+set list
+set listchars=tab:^\ ,trail:~
 
-call which_key#register('<Space>', "g:which_key_map")
+" ------------------------------------------------------------------------------
+" Copied surround.vim
+" ------------------------------------------------------------------------------
+if exists("g:loaded_surround") || &cp || v:version < 700
+  finish
+endif
+let g:loaded_surround = 1
 
-" Colorschemes
-let g:tokyonight_style = 'storm'
-let g:tokyonight_enable_italic = 1
-" colorscheme monokai
-" colorscheme nord
-" colorscheme tokyonight
-colorscheme dogrun
-" colorscheme codedark
-" colorscheme doom-one
-" colorscheme lucius
-" colorscheme cosme
-" colorscheme espresso
+" Input functions {{{1
 
-" Personal syntax highlight settings (for monokai)
-" memo: If want to check highlight group under the cursor,
-"       type a command below.
-"         :echo synIDattr(synID(line("."), col("."), 1), "name")
-"       And confirm highlight value with a command below.
-"         :highlight {highlight-group-name}
-" Color reference: http://www.calmar.ws/vim/256-xterm-24bit-rgb-color-chart.html
-" filetype detect
-" if &filetype == 'markdown'
-"   highlight Title cterm=bold ctermfg=148 guifg=#A6E22D
-"   highlight mkdHeading cterm=bold ctermfg=148 guifg=#A6E22D
-"   highlight githubFlavoredMarkdownCode ctermfg=208 ctermbg=234 guifg=#ff8700 guibg=#1c1c1c
-"   highlight mkdCode ctermfg=208 ctermbg=234 guifg=#ff8700 guibg=#1c1c1c
-"   highlight mkdCodeStart ctermfg=8 guifg=#808080
-"   highlight mkdCodeEnd ctermfg=8 guifg=#808080
-"   highlight lv5 ctermfg=208 guifg=#ff8700
-"   highlight mkdInlineURL cterm=underline ctermfg=184 guifg=#ffff5f
-"   highlight mkdDelimiter ctermfg=white guifg=white
-"   highlight op_lv0 cterm=bold ctermfg=148 guifg=#A6E22D
-" endif
-
-" Implement smooth scrolling
-let s:stop_time = 10
-
-function! s:down(timer) abort
-  execute "normal! 3\<C-e>3j"
-endfunction
-
-function! s:up(timer) abort
-  execute "normal! 3\<C-y>3k"
-endfunction
-
-function! s:smooth_scroll(fn) abort
-  let working_timer = get(s:, 'smooth_scroll_timer', 0)
-  if !empty(timer_info(working_timer))
-    call timer_stop(working_timer)
+function! s:getchar()
+  let c = getchar()
+  if c =~ '^\d\+$'
+    let c = nr2char(c)
   endif
-  if (a:fn ==# 'down' && line('$') == line('w$')) ||
-        \ (a:fn ==# 'up' && line('w0') == 1)
-    return
-  endif
-  let s:smooth_scroll_timer = timer_start(s:stop_time, function('s:' . a:fn), {'repeat' : &scroll/3})
+  return c
 endfunction
 
-" nnoremap <silent> <C-u> <cmd>call <SID>smooth_scroll('up')<CR>
-" nnoremap <silent> <C-d> <cmd>call <SID>smooth_scroll('down')<CR>
-" vnoremap <silent> <C-u> <cmd>call <SID>smooth_scroll('up')<CR>
-" vnoremap <silent> <C-d> <cmd>call <SID>smooth_scroll('down')<CR>
+function! s:inputtarget()
+  let c = s:getchar()
+  while c =~ '^\d\+$'
+    let c .= s:getchar()
+  endwhile
+  if c == " "
+    let c .= s:getchar()
+  endif
+  if c =~ "\<Esc>\|\<C-C>\|\0"
+    return ""
+  else
+    return c
+  endif
+endfunction
+
+function! s:inputreplacement()
+  let c = s:getchar()
+  if c == " "
+    let c .= s:getchar()
+  endif
+  if c =~ "\<Esc>" || c =~ "\<C-C>"
+    return ""
+  else
+    return c
+  endif
+endfunction
+
+function! s:beep()
+  exe "norm! \<Esc>"
+  return ""
+endfunction
+
+function! s:redraw()
+  redraw
+  return ""
+endfunction
+
+" }}}1
+
+" Wrapping functions {{{1
+
+function! s:extractbefore(str)
+  if a:str =~ '\r'
+    return matchstr(a:str,'.*\ze\r')
+  else
+    return matchstr(a:str,'.*\ze\n')
+  endif
+endfunction
+
+function! s:extractafter(str)
+  if a:str =~ '\r'
+    return matchstr(a:str,'\r\zs.*')
+  else
+    return matchstr(a:str,'\n\zs.*')
+  endif
+endfunction
+
+function! s:fixindent(str,spc)
+  let str = substitute(a:str,'\t',repeat(' ',&sw),'g')
+  let spc = substitute(a:spc,'\t',repeat(' ',&sw),'g')
+  let str = substitute(str,'\(\n\|\%^\).\@=','\1'.spc,'g')
+  if ! &et
+    let str = substitute(str,'\s\{'.&ts.'\}',"\t",'g')
+  endif
+  return str
+endfunction
+
+function! s:process(string)
+  let i = 0
+  for i in range(7)
+    let repl_{i} = ''
+    let m = matchstr(a:string,nr2char(i).'.\{-\}\ze'.nr2char(i))
+    if m != ''
+      let m = substitute(strpart(m,1),'\r.*','','')
+      let repl_{i} = input(match(m,'\w\+$') >= 0 ? m.': ' : m)
+    endif
+  endfor
+  let s = ""
+  let i = 0
+  while i < strlen(a:string)
+    let char = strpart(a:string,i,1)
+    if char2nr(char) < 8
+      let next = stridx(a:string,char,i+1)
+      if next == -1
+        let s .= char
+      else
+        let insertion = repl_{char2nr(char)}
+        let subs = strpart(a:string,i+1,next-i-1)
+        let subs = matchstr(subs,'\r.*')
+        while subs =~ '^\r.*\r'
+          let sub = matchstr(subs,"^\r\\zs[^\r]*\r[^\r]*")
+          let subs = strpart(subs,strlen(sub)+1)
+          let r = stridx(sub,"\r")
+          let insertion = substitute(insertion,strpart(sub,0,r),strpart(sub,r+1),'')
+        endwhile
+        let s .= insertion
+        let i = next
+      endif
+    else
+      let s .= char
+    endif
+    let i += 1
+  endwhile
+  return s
+endfunction
+
+function! s:wrap(string,char,type,removed,special)
+  let keeper = a:string
+  let newchar = a:char
+  let s:input = ""
+  let type = a:type
+  let linemode = type ==# 'V' ? 1 : 0
+  let before = ""
+  let after  = ""
+  if type ==# "V"
+    let initspaces = matchstr(keeper,'\%^\s*')
+  else
+    let initspaces = matchstr(getline('.'),'\%^\s*')
+  endif
+  let pairs = "b()B{}r[]a<>"
+  let extraspace = ""
+  if newchar =~ '^ '
+    let newchar = strpart(newchar,1)
+    let extraspace = ' '
+  endif
+  let idx = stridx(pairs,newchar)
+  if newchar == ' '
+    let before = ''
+    let after  = ''
+  elseif exists("b:surround_".char2nr(newchar))
+    let all    = s:process(b:surround_{char2nr(newchar)})
+    let before = s:extractbefore(all)
+    let after  =  s:extractafter(all)
+  elseif exists("g:surround_".char2nr(newchar))
+    let all    = s:process(g:surround_{char2nr(newchar)})
+    let before = s:extractbefore(all)
+    let after  =  s:extractafter(all)
+  elseif newchar ==# "p"
+    let before = "\n"
+    let after  = "\n\n"
+  elseif newchar ==# 's'
+    let before = ' '
+    let after  = ''
+  elseif newchar ==# ':'
+    let before = ':'
+    let after = ''
+  elseif newchar =~# "[tT\<C-T><]"
+    let dounmapp = 0
+    let dounmapb = 0
+    if !maparg(">","c")
+      let dounmapb = 1
+      " Hide from AsNeeded
+      exe "cn"."oremap > ><CR>"
+    endif
+    let default = ""
+    if newchar ==# "T"
+      if !exists("s:lastdel")
+        let s:lastdel = ""
+      endif
+      let default = matchstr(s:lastdel,'<\zs.\{-\}\ze>')
+    endif
+    let tag = input("<",default)
+    if dounmapb
+      silent! cunmap >
+    endif
+    let s:input = tag
+    if tag != ""
+      let keepAttributes = ( match(tag, ">$") == -1 )
+      let tag = substitute(tag,'>*$','','')
+      let attributes = ""
+      if keepAttributes
+        let attributes = matchstr(a:removed, '<[^ \t\n]\+\zs\_.\{-\}\ze>')
+      endif
+      let s:input = tag . '>'
+      if tag =~ '/$'
+        let tag = substitute(tag, '/$', '', '')
+        let before = '<'.tag.attributes.' />'
+        let after = ''
+      else
+        let before = '<'.tag.attributes.'>'
+        let after  = '</'.substitute(tag,' .*','','').'>'
+      endif
+      if newchar == "\<C-T>"
+        if type ==# "v" || type ==# "V"
+          let before .= "\n\t"
+        endif
+        if type ==# "v"
+          let after  = "\n". after
+        endif
+      endif
+    endif
+  elseif newchar ==# 'l' || newchar == '\'
+    " LaTeX
+    let env = input('\begin{')
+    if env != ""
+      let s:input = env."\<CR>"
+      let env = '{' . env
+      let env .= s:closematch(env)
+      echo '\begin'.env
+      let before = '\begin'.env
+      let after  = '\end'.matchstr(env,'[^}]*').'}'
+    endif
+  elseif newchar ==# 'f' || newchar ==# 'F'
+    let fnc = input('function: ')
+    if fnc != ""
+      let s:input = fnc."\<CR>"
+      let before = substitute(fnc,'($','','').'('
+      let after  = ')'
+      if newchar ==# 'F'
+        let before .= ' '
+        let after = ' ' . after
+      endif
+    endif
+  elseif newchar ==# "\<C-F>"
+    let fnc = input('function: ')
+    let s:input = fnc."\<CR>"
+    let before = '('.fnc.' '
+    let after = ')'
+  elseif idx >= 0
+    let spc = (idx % 3) == 1 ? " " : ""
+    let idx = idx / 3 * 3
+    let before = strpart(pairs,idx+1,1) . spc
+    let after  = spc . strpart(pairs,idx+2,1)
+  elseif newchar == "\<C-[>" || newchar == "\<C-]>"
+    let before = "{\n\t"
+    let after  = "\n}"
+  elseif newchar !~ '\a'
+    let before = newchar
+    let after  = newchar
+  else
+    let before = ''
+    let after  = ''
+  endif
+  let after  = substitute(after ,'\n','\n'.initspaces,'g')
+  if type ==# 'V' || (a:special && type ==# "v")
+    let before = substitute(before,' \+$','','')
+    let after  = substitute(after ,'^ \+','','')
+    if after !~ '^\n'
+      let after  = initspaces.after
+    endif
+    if keeper !~ '\n$' && after !~ '^\n'
+      let keeper .= "\n"
+    elseif keeper =~ '\n$' && after =~ '^\n'
+      let after = strpart(after,1)
+    endif
+    if keeper !~ '^\n' && before !~ '\n\s*$'
+      let before .= "\n"
+      if a:special
+        let before .= "\t"
+      endif
+    elseif keeper =~ '^\n' && before =~ '\n\s*$'
+      let keeper = strcharpart(keeper,1)
+    endif
+    if type ==# 'V' && keeper =~ '\n\s*\n$'
+      let keeper = strcharpart(keeper,0,strchars(keeper) - 1)
+    endif
+  endif
+  if type ==# 'V'
+    let before = initspaces.before
+  endif
+  if before =~ '\n\s*\%$'
+    if type ==# 'v'
+      let keeper = initspaces.keeper
+    endif
+    let padding = matchstr(before,'\n\zs\s\+\%$')
+    let before  = substitute(before,'\n\s\+\%$','\n','')
+    let keeper = s:fixindent(keeper,padding)
+  endif
+  if type ==# 'V'
+    let keeper = before.keeper.after
+  elseif type =~ "^\<C-V>"
+    " Really we should be iterating over the buffer
+    let repl = substitute(before,'[\\~]','\\&','g').'\1'.substitute(after,'[\\~]','\\&','g')
+    let repl = substitute(repl,'\n',' ','g')
+    let keeper = substitute(keeper."\n",'\(.\{-\}\)\(\n\)',repl.'\n','g')
+    let keeper = substitute(keeper,'\n\%$','','')
+  else
+    let keeper = before.extraspace.keeper.extraspace.after
+  endif
+  return keeper
+endfunction
+
+function! s:wrapreg(reg,char,removed,special)
+  let orig = getreg(a:reg)
+  let type = substitute(getregtype(a:reg),'\d\+$','','')
+  let new = s:wrap(orig,a:char,type,a:removed,a:special)
+  call setreg(a:reg,new,type)
+endfunction
+" }}}1
+
+function! s:insert(...) " {{{1
+  " Optional argument causes the result to appear on 3 lines, not 1
+  let linemode = a:0 ? a:1 : 0
+  let char = s:inputreplacement()
+  while char == "\<CR>" || char == "\<C-S>"
+    " TODO: use total count for additional blank lines
+    let linemode += 1
+    let char = s:inputreplacement()
+  endwhile
+  if char == ""
+    return ""
+  endif
+  let cb_save = &clipboard
+  set clipboard-=unnamed clipboard-=unnamedplus
+  let reg_save = @@
+  call setreg('"',"\032",'v')
+  call s:wrapreg('"',char,"",linemode)
+  " If line mode is used and the surrounding consists solely of a suffix,
+  " remove the initial newline.  This fits a use case of mine but is a
+  " little inconsistent.  Is there anyone that would prefer the simpler
+  " behavior of just inserting the newline?
+  if linemode && match(getreg('"'),'^\n\s*\zs.*') == 0
+    call setreg('"',matchstr(getreg('"'),'^\n\s*\zs.*'),getregtype('"'))
+  endif
+  " This can be used to append a placeholder to the end
+  if exists("g:surround_insert_tail")
+    call setreg('"',g:surround_insert_tail,"a".getregtype('"'))
+  endif
+  if &ve != 'all' && col('.') >= col('$')
+    if &ve == 'insert'
+      let extra_cols = virtcol('.') - virtcol('$')
+      if extra_cols > 0
+        let [regval,regtype] = [getreg('"',1,1),getregtype('"')]
+        call setreg('"',join(map(range(extra_cols),'" "'),''),'v')
+        norm! ""p
+        call setreg('"',regval,regtype)
+      endif
+    endif
+    norm! ""p
+  else
+    norm! ""P
+  endif
+  if linemode
+    call s:reindent()
+  endif
+  norm! `]
+  call search("\032",'bW')
+  let @@ = reg_save
+  let &clipboard = cb_save
+  return "\<Del>"
+endfunction " }}}1
+
+function! s:reindent() abort " {{{1
+  if get(b:, 'surround_indent', get(g:, 'surround_indent', 1)) && (!empty(&equalprg) || !empty(&indentexpr) || &cindent || &smartindent || &lisp)
+    silent norm! '[=']
+  endif
+endfunction " }}}1
+
+function! s:dosurround(...) " {{{1
+  let sol_save = &startofline
+  set startofline
+  let scount = v:count1
+  let char = (a:0 ? a:1 : s:inputtarget())
+  let spc = ""
+  if char =~ '^\d\+'
+    let scount = scount * matchstr(char,'^\d\+')
+    let char = substitute(char,'^\d\+','','')
+  endif
+  if char =~ '^ '
+    let char = strpart(char,1)
+    let spc = 1
+  endif
+  if char == 'a'
+    let char = '>'
+  endif
+  if char == 'r'
+    let char = ']'
+  endif
+  let newchar = ""
+  if a:0 > 1
+    let newchar = a:2
+    if newchar == "\<Esc>" || newchar == "\<C-C>" || newchar == ""
+      if !sol_save
+        set nostartofline
+      endif
+      return s:beep()
+    endif
+  endif
+  let cb_save = &clipboard
+  set clipboard-=unnamed clipboard-=unnamedplus
+  let append = ""
+  let original = getreg('"')
+  let otype = getregtype('"')
+  call setreg('"',"")
+  let strcount = (scount == 1 ? "" : scount)
+  if char == '/'
+    exe 'norm! '.strcount.'[/d'.strcount.']/'
+  elseif char =~# '[[:punct:][:space:]]' && char !~# '[][(){}<>"''`]'
+    exe 'norm! T'.char
+    if getline('.')[col('.')-1] == char
+      exe 'norm! l'
+    endif
+    exe 'norm! dt'.char
+  else
+    exe 'norm! d'.strcount.'i'.char
+  endif
+  let keeper = getreg('"')
+  let okeeper = keeper " for reindent below
+  if keeper == ""
+    call setreg('"',original,otype)
+    let &clipboard = cb_save
+    if !sol_save
+      set nostartofline
+    endif
+    return ""
+  endif
+  let oldline = getline('.')
+  let oldlnum = line('.')
+  if char ==# "p"
+    call setreg('"','','V')
+  elseif char ==# "s" || char ==# "w" || char ==# "W"
+    " Do nothing
+    call setreg('"','')
+  elseif char =~ "[\"'`]"
+    exe "norm! i \<Esc>d2i".char
+    call setreg('"',substitute(getreg('"'),' ','',''))
+  elseif char == '/'
+    norm! "_x
+    call setreg('"','/**/',"c")
+    let keeper = substitute(substitute(keeper,'^/\*\s\=','',''),'\s\=\*$','','')
+  elseif char =~# '[[:punct:][:space:]]' && char !~# '[][(){}<>]'
+    exe 'norm! F'.char
+    exe 'norm! df'.char
+  else
+    " One character backwards
+    call search('\m.', 'bW')
+    exe "norm! da".char
+  endif
+  let removed = getreg('"')
+  let rem2 = substitute(removed,'\n.*','','')
+  let oldhead = strpart(oldline,0,strlen(oldline)-strlen(rem2))
+  let oldtail = strpart(oldline,  strlen(oldline)-strlen(rem2))
+  let regtype = getregtype('"')
+  if char =~# '[\[({<T]' || spc
+    let keeper = substitute(keeper,'^\s\+','','')
+    let keeper = substitute(keeper,'\s\+$','','')
+  endif
+  if col("']") == col("$") && virtcol('.') + 1 == virtcol('$')
+    if oldhead =~# '^\s*$' && a:0 < 2
+      let keeper = substitute(keeper,'\%^\n'.oldhead.'\(\s*.\{-\}\)\n\s*\%$','\1','')
+    endif
+    let pcmd = "p"
+  else
+    let pcmd = "P"
+  endif
+  if line('.') + 1 < oldlnum && regtype ==# "V"
+    let pcmd = "p"
+  endif
+  call setreg('"',keeper,regtype)
+  if newchar != ""
+    let special = a:0 > 2 ? a:3 : 0
+    call s:wrapreg('"',newchar,removed,special)
+  endif
+  silent exe 'norm! ""'.pcmd.'`['
+  if removed =~ '\n' || okeeper =~ '\n' || getreg('"') =~ '\n'
+    call s:reindent()
+  endif
+  if getline('.') =~ '^\s\+$' && keeper =~ '^\s*\n'
+    silent norm! cc
+  endif
+  call setreg('"',original,otype)
+  let s:lastdel = removed
+  let &clipboard = cb_save
+  if newchar == ""
+    silent! call repeat#set("\<Plug>Dsurround".char,scount)
+  else
+    silent! call repeat#set("\<Plug>C".(a:0 > 2 && a:3 ? "S" : "s")."urround".char.newchar.s:input,scount)
+  endif
+  if !sol_save
+    set nostartofline
+  endif
+endfunction " }}}1
+
+function! s:changesurround(...) " {{{1
+  let a = s:inputtarget()
+  if a == ""
+    return s:beep()
+  endif
+  let b = s:inputreplacement()
+  if b == ""
+    return s:beep()
+  endif
+  call s:dosurround(a,b,a:0 && a:1)
+endfunction " }}}1
+
+function! s:opfunc(type, ...) abort " {{{1
+  if a:type ==# 'setup'
+    let &opfunc = matchstr(expand('<sfile>'), '<SNR>\w\+$')
+    return 'g@'
+  endif
+  let char = s:inputreplacement()
+  if char == ""
+    return s:beep()
+  endif
+  let reg = '"'
+  let sel_save = &selection
+  let &selection = "inclusive"
+  let cb_save  = &clipboard
+  set clipboard-=unnamed clipboard-=unnamedplus
+  let reg_save = getreg(reg)
+  let reg_type = getregtype(reg)
+  let type = a:type
+  if a:type == "char"
+    silent exe 'norm! v`[o`]"'.reg.'y'
+    let type = 'v'
+  elseif a:type == "line"
+    silent exe 'norm! `[V`]"'.reg.'y'
+    let type = 'V'
+  elseif a:type ==# "v" || a:type ==# "V" || a:type ==# "\<C-V>"
+    let &selection = sel_save
+    let ve = &virtualedit
+    if !(a:0 && a:1)
+      set virtualedit=
+    endif
+    silent exe 'norm! gv"'.reg.'y'
+    let &virtualedit = ve
+  elseif a:type =~ '^\d\+$'
+    let type = 'v'
+    silent exe 'norm! ^v'.a:type.'$h"'.reg.'y'
+    if mode() ==# 'v'
+      norm! v
+      return s:beep()
+    endif
+  else
+    let &selection = sel_save
+    let &clipboard = cb_save
+    return s:beep()
+  endif
+  let keeper = getreg(reg)
+  if type ==# "v" && a:type !=# "v"
+    let append = matchstr(keeper,'\_s\@<!\s*$')
+    let keeper = substitute(keeper,'\_s\@<!\s*$','','')
+  endif
+  call setreg(reg,keeper,type)
+  call s:wrapreg(reg,char,"",a:0 && a:1)
+  if type ==# "v" && a:type !=# "v" && append != ""
+    call setreg(reg,append,"ac")
+  endif
+  silent exe 'norm! gv'.(reg == '"' ? '' : '"' . reg).'p`['
+  if type ==# 'V' || (getreg(reg) =~ '\n' && type ==# 'v')
+    call s:reindent()
+  endif
+  call setreg(reg,reg_save,reg_type)
+  let &selection = sel_save
+  let &clipboard = cb_save
+  if a:type =~ '^\d\+$'
+    silent! call repeat#set("\<Plug>Y".(a:0 && a:1 ? "S" : "s")."surround".char.s:input,a:type)
+  else
+    silent! call repeat#set("\<Plug>SurroundRepeat".char.s:input)
+  endif
+endfunction
+
+function! s:opfunc2(...) abort
+  if !a:0 || a:1 ==# 'setup'
+    let &opfunc = matchstr(expand('<sfile>'), '<SNR>\w\+$')
+    return 'g@'
+  endif
+  call s:opfunc(a:1, 1)
+endfunction " }}}1
+
+function! s:closematch(str) " {{{1
+  " Close an open (, {, [, or < on the command line.
+  let tail = matchstr(a:str,'.[^\[\](){}<>]*$')
+  if tail =~ '^\[.\+'
+    return "]"
+  elseif tail =~ '^(.\+'
+    return ")"
+  elseif tail =~ '^{.\+'
+    return "}"
+  elseif tail =~ '^<.+'
+    return ">"
+  else
+    return ""
+  endif
+endfunction " }}}1
+
+nnoremap <silent> <Plug>SurroundRepeat .
+nnoremap <silent> <Plug>Dsurround  :<C-U>call <SID>dosurround(<SID>inputtarget())<CR>
+nnoremap <silent> <Plug>Csurround  :<C-U>call <SID>changesurround()<CR>
+nnoremap <silent> <Plug>CSurround  :<C-U>call <SID>changesurround(1)<CR>
+nnoremap <expr>   <Plug>Yssurround '^'.v:count1.<SID>opfunc('setup').'g_'
+nnoremap <expr>   <Plug>YSsurround <SID>opfunc2('setup').'_'
+nnoremap <expr>   <Plug>Ysurround  <SID>opfunc('setup')
+nnoremap <expr>   <Plug>YSurround  <SID>opfunc2('setup')
+vnoremap <silent> <Plug>VSurround  :<C-U>call <SID>opfunc(visualmode(),visualmode() ==# 'V' ? 1 : 0)<CR>
+vnoremap <silent> <Plug>VgSurround :<C-U>call <SID>opfunc(visualmode(),visualmode() ==# 'V' ? 0 : 1)<CR>
+inoremap <silent> <Plug>Isurround  <C-R>=<SID>insert()<CR>
+inoremap <silent> <Plug>ISurround  <C-R>=<SID>insert(1)<CR>
+
+if !exists("g:surround_no_mappings") || ! g:surround_no_mappings
+  nmap ds  <Plug>Dsurround
+  nmap cs  <Plug>Csurround
+  nmap cS  <Plug>CSurround
+  nmap ys  <Plug>Ysurround
+  nmap yS  <Plug>YSurround
+  nmap yss <Plug>Yssurround
+  nmap ySs <Plug>YSsurround
+  nmap ySS <Plug>YSsurround
+  xmap S   <Plug>VSurround
+  xmap gS  <Plug>VgSurround
+  if !exists("g:surround_no_insert_mappings") || ! g:surround_no_insert_mappings
+    if !hasmapto("<Plug>Isurround","i") && "" == mapcheck("<C-S>","i")
+      imap    <C-S> <Plug>Isurround
+    endif
+    imap      <C-G>s <Plug>Isurround
+    imap      <C-G>S <Plug>ISurround
+  endif
+endif
+
+" vim:set ft=vim sw=2 sts=2 et:
