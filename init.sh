@@ -6,7 +6,7 @@
 echo ""
 echo "[i] Install basic tools."
 sudo apt install -y \
-  peco xclip source-highlight docker.io docker-compose \
+  xclip source-highlight docker.io docker-compose \
   gawk tmux unar ripgrep bat wget curl git
   # gawk tmux unar vim-gtk ripgrep bat wget curl git
 
@@ -15,6 +15,13 @@ wget https://github.com/charmbracelet/glow/releases/download/v1.5.1/glow_1.5.1_a
   -O ~/Downloads/glow.deb
 sudo dpkg -i ~/Downloads/glow.deb
 rm ~/Downloads/glow.deb
+
+# Install peco to search command histories
+wget https://github.com/peco/peco/releases/download/v0.5.11/peco_linux_amd64.tar.gz \
+  -O ~/Downloads/peco.tar.gz
+tar -zxvf ~/Downloads/peco.tar.gz
+mkdir -p ~/.local/bin
+move ~/Downloads/peco_linux_amd64/peco ~/.local/bin/
 
 
 #########
