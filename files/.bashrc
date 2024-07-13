@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #####################
 ## SYSTEM SETTINGS ##
 ################################################################################
@@ -114,3 +116,4 @@ export PATH=${PATH}:/opt/java/jdk-11.0.2/bin
 export PATH=${PATH}:$HOME/.local/bin
 export PATH=${PATH}:$HOME/git/home/bin
 JAVA_HOME=/opt/java/jdk-11.0.2
+. "$HOME/.cargo/env"

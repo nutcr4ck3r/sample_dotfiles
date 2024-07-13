@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# set local variables (dotfiles path, name)
-path="$(cd $(dirname $0); pwd)/files" #create deploy file path
-bpath="$(cd $(dirname $0); pwd)/bin" #create deploy file path
+# Set file path.
+path="$(cd $(dirname $0); pwd)/files"
+bpath="$(cd $(dirname $0); pwd)/bin"
 dots=($(ls -a $path))
 
-# rename files if file exists, and deploy dotfiles
+# Rename files if file exists, and deploy links.
 for var in "${dots[@]}"; do
   if [ "$var" != "." ] && [ "$var" != ".." ]; then
     if [ -L "$HOME/$var" ]; then
@@ -20,7 +20,7 @@ for var in "${dots[@]}"; do
   fi
 done
 
-# delete old files
+# Delete old files.
 printf "Delete orginal files? [y/n:default (n)] : "
 read -r res
 if [ "$res" = "y" ] || [ "$res" = "Y" ] || \

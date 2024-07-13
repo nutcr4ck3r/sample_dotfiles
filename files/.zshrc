@@ -3,20 +3,20 @@
 ################################################################################
 # history control
 HISTFILE=$HOME/.zsh-history
-HISTSIZE=10000               # ヒストリに保存するコマンド数
-SAVEHIST=10000               # ヒストリファイルに保存するコマンド数
+HISTSIZE=10000               # Number of commands saved in history
+SAVEHIST=10000               # Number of commands saved in history file
 HISTORY_IGNORE="(cd|pwd|l[sal])"
 zshaddhistory() {
   emulate -L zsh
   [[ ${1%%$'\n'} != ${~HISTORY_IGNORE} ]]
 }
 setopt hist_ignore_dups
-setopt hist_ignore_all_dups  # 重複するコマンド行は古い方を削除
+setopt hist_ignore_all_dups  # For duplicate command lines, delete the old one
 setopt hist_no_store
-setopt share_history         # コマンド履歴ファイルを共有する
-setopt append_history        # 履歴を追加 (毎回 .zsh_history を作るのではなく)
-setopt inc_append_history    # 履歴をインクリメンタルに追加
-setopt hist_reduce_blanks    # 余分な空白は詰めて記録
+setopt share_history         # Share command history files
+setopt append_history        # Add history (instead of creating .zsh_history every time)
+setopt inc_append_history    # Add history incrementally
+setopt hist_reduce_blanks    # Fill in any extra spaces and record
 
 # set variable identifying the chroot you work in (used in the prompt below)
 if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then
@@ -58,11 +58,11 @@ man() {
     man "$@"
 }
 
-## history search by peco
 function peco-history-selection() {
-    BUFFER=`history -n 1 | awk '!a[$0]++' | peco`
-    CURSOR=$#BUFFER
-    zle reset-prompt
+  BUFFER=$(history -n -r 1 | peco --query "$LBUFFER")
+  CURSOR=$#BUFFER
+  zle reset-prompt
+  zle clear-screen
 }
 zle -N peco-history-selection
 
@@ -87,8 +87,11 @@ alias l='ls $lsoption'
 alias ll='ls -lhF $lsoption'
 alias la='ls -aF $lsoption'
 alias lla='ls -lahF $lsoption'
+alias tm='tmux'
 alias cd='cdls'
 alias w3m='w3m google.com'
+alias k='kubectl'
+alias d='sudo docker'
 if type "nvim" > /dev/null 2>&1; then
   alias vim='nvim $1'
 fi
@@ -108,22 +111,6 @@ esac
 export PATH=${PATH}:/snap/bin
 export PATH=${PATH}:/opt/java/jdk/bin
 export PATH=${PATH}:$HOME/.local/bin
-export PATH=${PATH}:$HOME/git/dotfiles/bin
-export PATH=${PATH}:/home/user/git/dotfiles/bin
-export PATH=${PATH}:$HOME/.nodebrew/current/bin
-export PATH=${PATH}:/usr/local/opt/mysql-client/bin
-
-# for pyenv
-# export PYENV_ROOT="$HOME/.pyenv"
-# command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/shims:$PATH"
-# command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-# if [[ $(which pyenv) == 'true' ]] ; then
-#   eval "$(pyenv init -)"
-# fi
-
-# for znap
-source ~/zsh_plugins/zsh-snap/znap.zsh
-znap source marlonrichert/zsh-autocomplete
 
 # prompt settings.
 autoload -Uz vcs_info
@@ -141,6 +128,7 @@ fi
 }
 precmd () { vcs_info }
 setopt prompt_subst
+
 # PROMPT = [user_name][path][git_push][git_app|branch]
 PROMPT='
 %B%F{cyan}[%n]%f%F{blue}[%~]%f%F{green}\

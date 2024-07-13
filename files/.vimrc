@@ -1,4 +1,16 @@
 " ------------------------------------------------------------------------------
+" Description
+" ------------------------------------------------------------------------------
+" This .vimrc file contains the following contents:
+" - General Vim settings
+" - File Tree View
+" - Session Saving
+" - Keybinds
+" - Static Plugin data
+"   - Colorscheme (dogrun)
+"   - surround.vim
+
+" ------------------------------------------------------------------------------
 " General settings.
 " ------------------------------------------------------------------------------
 set nobackup              " Not create backup file.
@@ -255,7 +267,7 @@ hi Conceal guifg=#ac8b83 ctermfg=138 guibg=#222433 ctermbg=235 gui=NONE cterm=NO
 hi NormalFloat guifg=#9ea3c0 ctermfg=146 guibg=#32364c ctermbg=237 gui=NONE cterm=NONE
 hi Folded guifg=#666c99 ctermfg=60 guibg=#32364c ctermbg=237 gui=NONE cterm=NONE
 hi FoldColumn guifg=#32364c ctermfg=237 guibg=NONE ctermbg=NONE gui=NONE cterm=NONE
-hi MatchParen guibg=#000000 guifg=#b871b8 ctermbg=236
+hi MatchParen gui=bold guibg=#000000 guifg=#b871b8 ctermbg=236
 hi Directory guifg=#a8a384 ctermfg=144
 hi Underlined gui=underline cterm=underline
 hi String guifg=#7cbe8c ctermfg=108
