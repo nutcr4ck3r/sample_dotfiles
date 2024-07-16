@@ -130,11 +130,9 @@ precmd () { vcs_info }
 setopt prompt_subst
 
 # PROMPT = [user_name][path][git_push][git_app|branch]
-setopt prompt_subst
-TMOUT=1
-TRAPALRM() {zle reset-prompt}
 PROMPT='
-%F{white}%D{%Y-%m-%d %H:%M:%S %Z}%f
+%F{237}>> %D{%Y-%m-%d %H:%M:%S %Z}%f
+
 %B%F{cyan}[%n]%f%F{blue}[%~]%f%F{green}\
 $(_git_not_pushed)%f${vcs_info_msg_0_}
 %F{red}>%F{yellow}>%F{green}>%f%b '
