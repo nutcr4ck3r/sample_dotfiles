@@ -58,6 +58,7 @@ man() {
     man "$@"
 }
 
+## peco
 function peco-history-selection() {
   BUFFER=$(history -n -r 1 | peco --query "$LBUFFER")
   CURSOR=$#BUFFER
@@ -65,21 +66,6 @@ function peco-history-selection() {
   zle clear-screen
 }
 zle -N peco-history-selection
-
-## Check git status (push)
-function _git_not_pushed() {
-    if [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = "true" ]; then
-      head="$(git rev-parse HEAD)"
-      for x in $(git rev-parse --remotes)
-      do
-        if [ "$head" = "$x" ]; then
-          return 0
-        fi
-      done
-      echo "^"
-    fi
-    return 0
-  }
 
 # set Alias
 alias ls='ls $lsoption'
@@ -107,32 +93,43 @@ case ${OSTYPE} in
     ;;
 esac
 
+# Prompt settings
 # set path
 export PATH=${PATH}:/snap/bin
 export PATH=${PATH}:/opt/java/jdk/bin
 export PATH=${PATH}:$HOME/.local/bin
 
-# prompt settings.
+# Show Git branch information
 autoload -Uz vcs_info
-zstyle ':vcs_info:*' formats "%F{green}%c%u[%s(%b)]%f"  # Git(branch)
-zstyle ':vcs_info:git:*' check-for-changes true
-zstyle ':vcs_info:git:*' stagedstr "%F{yellow}!"       # Staged & no-commit.
-zstyle ':vcs_info:git:*' unstagedstr "%F{red}+"        # Unstaged.
-zstyle ':vcs_info:*' actionformats '(%s)[%b|%a]'       # Error. (ex.conflict)
-zstyle ':vcs_info:git*+set-message:*' hooks git-untracked
-+vi-git-untracked() {
-  if [[ $(git rev-parse --is-inside-work-tree 2> /dev/null) == 'true' ]] && \
-  [[ $(git ls-files --other --directory --exclude-standard | sed q | wc -l | tr -d ' ') == 1 ]] ; then
-  hook_com[unstaged]+='%F{red}?'
-fi
-}
-precmd () { vcs_info }
 setopt prompt_subst
+zstyle ':vcs_info:git:*' check-for-changes true
+zstyle ':vcs_info:git:*' stagedstr "%F{yellow}!"
+zstyle ':vcs_info:git:*' unstagedstr "%F{red}+"
+zstyle ':vcs_info:*'     formats "%F{green}%c%u[%b]%f"
+zstyle ':vcs_info:*'     actionformats '[%b|%a]'
+precmd () { vcs_info }
 
-# PROMPT = [user_name][path][git_push][git_app|branch]
-PROMPT='
-%F{237}>> %D{%Y-%m-%d %H:%M:%S %Z}%f
+# Show Bigin/End time for commands
+export PREV_COMMAND_END_TIME
+export NEXT_COMMAND_BGN_TIME
 
-%B%F{cyan}[%n]%f%F{blue}[%~]%f%F{green}\
-$(_git_not_pushed)%f${vcs_info_msg_0_}
+function show_command_end_time() {
+  PREV_COMMAND_END_TIME=`date "+%Y-%m-%d %H:%M:%S %Z"`
+  PROMPT="
+%F{237}IN: ${PREV_COMMAND_END_TIME}%f
+%F{cyan}[%n]%f%F{blue}[%~]%f%F{green}"'${vcs_info_msg_0_}
 %F{red}>%F{yellow}>%F{green}>%f%b '
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd show_command_end_time
+
+show_command_begin_time() {
+  NEXT_COMMAND_BGN_TIME=`date "+%Y-%m-%d %H:%M:%S %Z"`
+  PROMPT="
+%F{237}IN: ${PREV_COMMAND_END_TIME} -> OUT: ${NEXT_COMMAND_BGN_TIME}%f
+%F{cyan}[%n]%f%F{blue}[%~]%f%F{green}"'${vcs_info_msg_0_}
+%F{red}>%F{yellow}>%F{green}>%f%b '
+  zle .accept-line
+  zle .reset-prompt
+}
+zle -N accept-line show_command_begin_time
