@@ -19,9 +19,11 @@ rm ~/Downloads/glow.deb
 # Install peco to search command histories
 wget https://github.com/peco/peco/releases/download/v0.5.11/peco_linux_amd64.tar.gz \
   -O ~/Downloads/peco.tar.gz
-tar -zxvf ~/Downloads/peco.tar.gz
+tar -zxvf ~/Downloads/peco.tar.gz -C ~/Downloads/
 mkdir -p ~/.local/bin
 move ~/Downloads/peco_linux_amd64/peco ~/.local/bin/
+rm ~/Downloads/peco.tar.gz
+rm -r ~/Downloads/peco_linux_amd64
 
 
 #########
