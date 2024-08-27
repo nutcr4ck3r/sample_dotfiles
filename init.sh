@@ -7,8 +7,8 @@ echo ""
 echo "[i] Install basic tools."
 sudo apt install -y \
   xclip source-highlight docker.io docker-compose \
-  gawk tmux unar ripgrep bat wget curl git
-  # gawk tmux unar vim-gtk ripgrep bat wget curl git
+  gawk tmux unar ripgrep bat wget curl git unzip\
+  python3-pip python3-venv
 
 # Install glow to enable syntax highlighting on markdown files
 wget https://github.com/charmbracelet/glow/releases/download/v1.5.1/glow_1.5.1_amd64.deb \
@@ -24,6 +24,21 @@ mkdir -p ~/.local/bin
 move ~/Downloads/peco_linux_amd64/peco ~/.local/bin/
 rm ~/Downloads/peco.tar.gz
 rm -r ~/Downloads/peco_linux_amd64
+
+# Download & install HackGen Console NF
+wget https://github.com/yuru7/HackGen/releases/download/v2.9.0/HackGen_NF_v2.9.0.zip \
+  -O ~/Downloads/Hack.zip
+unzip ~/Downloads/Hack.zip -d ~/Downloads/
+mkdir -p ~/.fonts
+mv ~/Downloads/HackGen_NF_v2.9.0/Hack* ~/.fonts/
+rm ~/Downloads/Hack.zip
+rm -r ~/Downloads/HackGen_NF_v2.9.0
+
+# Localization (Japanese font, Timezone)
+sudo apt install -y fonts-ipafont fcitx-mozc
+sudo rm -f /etc/localtime
+sudo ln -s /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+im-config
 
 
 #########

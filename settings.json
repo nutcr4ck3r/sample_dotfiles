@@ -1,0 +1,147 @@
+{
+    "markdown.extension.toc.levels": "2..6",
+    "vim.hlsearch": true,
+    "vim.insertModeKeyBindings": [
+      {
+        "after": [
+          "<Esc>"
+        ],
+        "before": [
+          "j",
+          "j"
+        ]
+      }
+    ],
+    "vim.normalModeKeyBindingsNonRecursive": [
+      {
+        "after": [
+          "g",
+          "j"
+        ],
+        "before": [
+          "j"
+        ]
+      },
+      {
+        "after": [
+          "g",
+          "k"
+        ],
+        "before": [
+          "k"
+        ]
+      },
+      {
+        "after": [
+          "<Home>"
+        ],
+        "before": [
+          "_"
+        ]
+      },
+      {
+        "after": [
+          "<End>"
+        ],
+        "before": [
+          "-"
+        ]
+      },
+      {
+        "after": [
+          "b"
+        ],
+        "before": [
+          "<S-w>"
+        ]
+      },
+      {
+        "after": [
+          "g",
+          "e"
+        ],
+        "before": [
+          "<S-e>"
+        ]
+      },
+      {
+        "after": [
+          "<C-y>"
+        ],
+        "before": [
+          "<S-k>"
+        ]
+      },
+      {
+        "after": [
+          "<C-e>"
+        ],
+        "before": [
+          "<S-j>"
+        ]
+      }
+    ],
+    "vim.surround": true,
+    "vim.useSystemClipboard": true,
+    "vim.visualModeKeyBindings": [
+      {
+        "after": [
+          "<Esc>"
+        ],
+        "before": [
+          "n",
+          "n"
+        ]
+      },
+      {
+        "after": [
+          "<Home>"
+        ],
+        "before": [
+          "_"
+        ]
+      },
+      {
+        "after": [
+          "<End>"
+        ],
+        "before": [
+          "-"
+        ]
+      },
+      {
+        "after": [
+          "b"
+        ],
+        "before": [
+          "<S-w>"
+        ]
+      },
+      {
+        "after": [
+          "g",
+          "e"
+        ],
+        "before": [
+          "<S-e>"
+        ]
+      },
+      {
+        "after": [
+          "<C-y>"
+        ],
+        "before": [
+          "<S-k>"
+        ]
+      },
+      {
+        "after": [
+          "<C-e>"
+        ],
+        "before": [
+          "<S-j>"
+        ]
+      }
+    ],
+    "vim.whichwrap": "h,l,<,>,[,]"
+  }
