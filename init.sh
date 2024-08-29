@@ -7,7 +7,7 @@ echo ""
 echo "[i] Install basic tools."
 sudo apt install -y \
   xclip source-highlight docker.io docker-compose \
-  gawk tmux unar ripgrep bat wget curl git unzip\
+  gawk tmux unar ripgrep bat wget curl git unzip ranger \
   python3-pip python3-venv
 
 # Install glow to enable syntax highlighting on markdown files
