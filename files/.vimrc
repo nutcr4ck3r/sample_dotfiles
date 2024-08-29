@@ -7,8 +7,9 @@
 " - Session Saving
 " - Keybinds
 " - Static Plugin data
-"   - Colorscheme (dogrun)
+"   - Colorscheme (badwolf)
 "   - surround.vim
+"   - baftabs.vim
 
 " ------------------------------------------------------------------------------
 " General settings.
