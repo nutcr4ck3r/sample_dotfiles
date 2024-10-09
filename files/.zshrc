@@ -58,7 +58,7 @@ man() {
     man "$@"
 }
 
-## peco
+## Command History Search by peco
 function peco-history-selection() {
   BUFFER=$(history -n -r 1 | peco --query "$LBUFFER")
   CURSOR=$#BUFFER
@@ -66,6 +66,27 @@ function peco-history-selection() {
   zle clear-screen
 }
 zle -N peco-history-selection
+
+## DirPath Search & Move by peco
+autoload -Uz add-zsh-hock
+autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
+# search a destination from cdr list
+function peco-get-destination-from-cdr() {
+  cdr -l | \
+  sed -e 's/^[[:digit:]]*[[:blank:]]*//' | \
+  peco --query "$LBUFFER"
+}
+
+function peco-cdr() {
+  local destination="$(peco-get-destination-from-cdr)"
+  if [ -n "$destination" ]; then
+    BUFFER="cd $destination"
+    zle accept-line
+  else
+    zle reset-prompt
+  fi
+}
+zle -N peco-cdr
 
 # set Alias
 alias ls='ls $lsoption'
@@ -78,10 +99,8 @@ alias cd='cdls'
 alias w3m='w3m google.com'
 alias k='kubectl'
 alias d='sudo docker'
-if type "nvim" > /dev/null 2>&1; then
-  alias vim='nvim $1'
-fi
 bindkey "^K" peco-history-selection
+bindkey "^U" peco-cdr
 case ${OSTYPE} in
   darwin*)
     export LESSOPEN="| /usr/local/bin/src-hilite-lesspipe.sh %s"
