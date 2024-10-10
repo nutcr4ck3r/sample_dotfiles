@@ -118,6 +118,9 @@ export PATH=${PATH}:/snap/bin
 export PATH=${PATH}:/opt/java/jdk/bin
 export PATH=${PATH}:$HOME/.local/bin
 
+# for ranger
+export EDITOR=vim
+
 # Show Git branch information
 autoload -Uz vcs_info
 setopt prompt_subst
