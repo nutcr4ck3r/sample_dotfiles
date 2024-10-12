@@ -67,24 +67,21 @@ function peco-history-selection() {
 }
 zle -N peco-history-selection
 
-## DirPath Search & Move by peco
-autoload -Uz add-zsh-hock
-autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
-# search a destination from cdr list
-function peco-get-destination-from-cdr() {
-  cdr -l | \
-  sed -e 's/^[[:digit:]]*[[:blank:]]*//' | \
-  peco --query "$LBUFFER"
-}
+# DirPath History Search & Move by peco
+[[ ! -d "${XDG_CACHE_HOME:-$HOME/.cache}/shell/" ]] && mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/shell/"
 
-function peco-cdr() {
-  local destination="$(peco-get-destination-from-cdr)"
-  if [ -n "$destination" ]; then
-    BUFFER="cd $destination"
-    zle accept-line
-  else
-    zle reset-prompt
-  fi
+if [[ -n $(echo ${^fpath}/chpwd_recent_dirs(N)) && -n $(echo ${^fpath}/cdr(N)) ]]; then
+  autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
+  add-zsh-hook chpwd chpwd_recent_dirs
+  zstyle ':completion:*:*:cdr:*:*' menu selection
+  zstyle ':completion:*' recent-dirs-insert both
+  zstyle ':chpwd:*' recent-dirs-max 500
+  zstyle ':chpwd:*' recent-dirs-file "${XDG_CACHE_HOME:-$HOME/.cache}/shell/chpwd-recent-dirs"
+fi
+
+peco-cdr() {
+  local dest=$(cdr -l | sed 's/^\s*[0-9]*\s*//' | peco --query "$LBUFFER")
+  [[ -n $dest ]] && BUFFER="cd $dest" && zle accept-line
 }
 zle -N peco-cdr
 
@@ -112,15 +109,21 @@ case ${OSTYPE} in
     ;;
 esac
 
-# Prompt settings
 # set path
 export PATH=${PATH}:/snap/bin
 export PATH=${PATH}:/opt/java/jdk/bin
 export PATH=${PATH}:$HOME/.local/bin
+export PATH=${PATH}:$HOME/git/dotfiles/bin
+export PATH=${PATH}:/home/user/git/dotfiles/bin
+export PATH=${PATH}:$HOME/.nodebrew/current/bin
+export PATH=${PATH}:/usr/local/opt/mysql-client/bin
 
 # for ranger
 export EDITOR=vim
 
+#####################
+## PROMPT SETTINGS ##
+################################################################################
 # Show Git branch information
 autoload -Uz vcs_info
 setopt prompt_subst
@@ -155,3 +158,116 @@ show_command_begin_time() {
   zle .reset-prompt
 }
 zle -N accept-line show_command_begin_time
+
+alias so='source ~/.zshrc'
+alias cdp='pa cd'
+alias lsp='pa ls'
+alias vip='pa vi'
+alias vimp='pa vim'
+alias lessp='pa less'
+alias catp='pa cat'
+alias morep='pa more'
+alias findp='pa find'
+alias rmp='pa rm'
+alias cpp='pa cp'
+alias mvp='pa mv'
+
+# 'pa' function: command wrapper for interactive file/directory selection using 'find' and 'peco'.
+# Supports commands: cd, ls, vi, vim, less, cat, more, find, rm, cp, mv.
+
+pa() {
+  local cmd="$1"; shift
+  local args="$@"
+  local selected_path=""
+  local dst_path=""
+
+  # Path selection
+  case "$cmd" in
+    cd|ls)
+      selected_path=$(find ${args:-.} -type d | peco)
+      ;;
+    vi|vim|less|cat|more)
+      selected_path=$(find ${args:-.} -type f | peco)
+      ;;
+    find)
+      selected_path=$(find ${args:-.} | peco)
+      [ -z "$selected_path" ] && { echo "[!] No selection made."; return; }
+      [ -d "$selected_path" ] && cd "$selected_path" || cd "$(dirname "$selected_path")"
+      ls
+      return
+      ;;
+    rm)
+      selected_path=$(find ${args:-.} | peco)
+      [ -z "$selected_path" ] && { echo "[!] No selection made."; return; }
+      echo -n "[?] Delete '$selected_path'? yes/no: "; read confirm
+      [[ "$confirm" =~ ^(yes|y|Y)$ ]] && rm -r "$selected_path" || echo "[!] Deletion cancelled."
+      return
+      ;;
+    cp|mv)
+      [[ -n "$args" ]] && selected_path=$(find $args -type f | peco) || { echo -n "[?] Enter source path: "; read input_path; selected_path=$(find ${input_path:-.} -type f | peco); }
+      [ -z "$selected_path" ] && { echo "[!] No selection made."; return; }
+      echo -n "[?] Enter destination path: "; read dst_input_path
+      dst_path=$(find ${dst_input_path:-.} -type d | peco)
+      [ -z "$dst_path" ] && { echo "[!] No destination selected."; return; }
+      if [ -e "$dst_path/$(basename "$selected_path")" ]; then
+        echo -n "[?] Overwrite existing file? yes/no: "; read overwrite_confirm
+        [[ ! "$overwrite_confirm" =~ ^(yes|y|Y)$ ]] && { echo "[!] $cmd cancelled."; return; }
+      fi
+      echo -n "[?] Confirm $cmd '$selected_path' to '$dst_path'? yes/no: "; read confirm
+      [[ "$confirm" =~ ^(yes|y|Y)$ ]] && $cmd "$selected_path" "$dst_path" || echo "[!] $cmd cancelled."
+      return
+      ;;
+    *)
+      echo "[!] No matching action."; return
+      ;;
+  esac
+
+  [ -z "$selected_path" ] && { echo "[!] No selection made."; return; }
+  echo "[-] Executing command: $cmd $selected_path"
+  [ "$cmd" = "cd" ] && cd "$selected_path" || eval "$cmd $selected_path"
+}
+
+# vp: A simple Vim plugin manager for installing, removing, listing, and updating plugins.
+
+vp() {
+    local plugin_dir="$HOME/.vim/pack/vp/start"
+    [[ ! -d "$plugin_dir" ]] && mkdir -p "$plugin_dir"
+
+    case $1 in
+        -i|--install)
+            [[ -z "$2" ]] && { echo "Error: No repository URL provided."; return 1; }
+            local repo_url="$2"
+            [[ "$repo_url" != http* ]] && repo_url="https://github.com/$repo_url.git"
+            git clone "$repo_url" "$plugin_dir/$(basename "$repo_url" .git)" || {
+                echo "Error: Failed to clone the repository."; return 1;
+            }
+            echo "Plugin installed: $(basename "$repo_url" .git)"
+            ;;
+        -r|--remove)
+            [[ -z "$2" ]] && { echo "Error: No plugin name provided."; return 1; }
+            local plugin_path="$plugin_dir/$2"
+            [[ -d "$plugin_path" ]] && { rm -rf "$plugin_path" && echo "Plugin removed: $2"; } || {
+                echo "Error: Plugin '$2' not found."; return 1;
+            }
+            ;;
+        -l|--list)
+            echo "Installed plugins:" && ls "$plugin_dir" || echo "No plugins installed."
+            ;;
+        -u|--update)
+            echo "Updating all plugins..."
+            for dir in "$plugin_dir"/*; do
+                [[ -d "$dir/.git" ]] && echo "Updating $(basename "$dir")..." && git -C "$dir" pull || echo "Error: Failed to update $(basename "$dir")"
+            done
+            ;;
+        *)
+            echo "Usage: vp {
+  -i|--install <repo_url>   Install a plugin. If 'user/repo' is given, it will
+                            be cloned from GitHub.
+  -r|--remove <plugin_name> Remove the specified plugin.
+  -l|--list                 List all installed plugins.
+  -u|--update               Update all installed plugins.
+}"
+            return 1
+            ;;
+    esac
+}
