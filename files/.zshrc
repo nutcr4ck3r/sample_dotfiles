@@ -96,7 +96,7 @@ alias cd='cdls'
 alias w3m='w3m google.com'
 alias k='kubectl'
 alias d='sudo docker'
-bindkey "^K" peco-history-selection
+bindkey "^I" peco-history-selection
 bindkey "^U" peco-cdr
 case ${OSTYPE} in
   darwin*)
