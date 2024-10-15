@@ -8,7 +8,11 @@ echo "[i] Install basic tools."
 sudo apt install -y \
   xclip source-highlight docker.io docker-compose \
   gawk tmux unar ripgrep bat wget curl git unzip ranger \
-  python3-pip python3-venv fzf
+  python3-pip python3-venv fzf bat
+
+# Create .local/bin directory & batcat link for fzf/rg
+mkdir -p ~/.local/bin
+ln -s /usr/bin/batcat ~/.local/bin/bat
 
 # Install glow to enable syntax highlighting on markdown files
 wget https://github.com/charmbracelet/glow/releases/download/v1.5.1/glow_1.5.1_amd64.deb \
