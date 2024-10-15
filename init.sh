@@ -29,6 +29,9 @@ rm -r ~/Downloads/HackGen_NF_v2.9.0
 curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
+# pyenv
+curl https://pyenv.run | bash
+
 # Localization (Japanese font, Timezone)
 sudo apt install -y fonts-ipafont fcitx-mozc
 sudo rm -f /etc/localtime
