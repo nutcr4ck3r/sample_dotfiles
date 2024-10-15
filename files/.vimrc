@@ -37,15 +37,19 @@ call plug#end()
 " fr : Search strings with fzf:ripgrep
 " fm : Search files in MRU
 
-" fzf.vim
+" fzf.vim  ---------------------------------------------------------------------
 " Modified Rg command to direct path
-function! RgDir(...)
-    let l:path = a:0 == 0 ? getcwd() : a:1
-    call fzf#vim#grep("rg --hidden --column --line-number --no-heading --color=always --smart-case .", 1, {'dir': l:path, 'options': '--preview "bat --style=numbers --color=always --line-range :500 {}"'}, 0)
+function! FZGrep(query, fullscreen)
+  let command_fmt = 'rg --hidden --column --line-number --no-heading --color=always --smart-case -- %s || true'
+  let initial_command = printf(command_fmt, shellescape(a:query))
+  let reload_command = printf(command_fmt, '{q}')
+  let spec = {'options': ['--phony', '--query', a:query, '--bind', 'change:reload:'.reload_command]}
+  call fzf#vim#grep(initial_command, 1, fzf#vim#with_preview(spec), a:fullscreen)
 endfunction
-command! -nargs=? Rg call RgDir(<f-args>)
+command! -nargs=* -bang RG call FZGrep(<q-args>, <bang>0)
 nnoremap <silent> ff :Files<CR>
-nnoremap <silent> fr :Rg<CR>
+nnoremap <silent> fg :GFiles<CR>
+nnoremap <silent> fr :RG<CR>
 nnoremap <silent> fm :FZFMru<CR>
 
 " ------------------------------------------------------------------------------
@@ -215,6 +219,7 @@ set whichwrap=b,s,h,l,<,>,[,]   " Cursol can move between line end to line head.
 set backspace=indent,eol,start  " Enable backspace.
 set shiftwidth=2                " Change indent to space.
 set wildmode=list:longest       " Complement file name when input command.
+set textwidth=0                 " Disable auto indentation.
 
 " ------------------------------------------------------------------------------
 " Tab's number settings
