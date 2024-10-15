@@ -58,16 +58,16 @@ man() {
     man "$@"
 }
 
-## Command History Search by peco
-function peco-history-selection() {
-  BUFFER=$(history -n -r 1 | peco --query "$LBUFFER")
+## Command History Search by fzf
+function fzf-history-selection() {
+  BUFFER=$(history -n -r 1 | fzf --query "$LBUFFER")
   CURSOR=$#BUFFER
   zle reset-prompt
   zle clear-screen
 }
-zle -N peco-history-selection
+zle -N fzf-history-selection
 
-# DirPath History Search & Move by peco
+# DirPath History Search & Move by fzf
 [[ ! -d "${XDG_CACHE_HOME:-$HOME/.cache}/shell/" ]] && mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/shell/"
 
 if [[ -n $(echo ${^fpath}/chpwd_recent_dirs(N)) && -n $(echo ${^fpath}/cdr(N)) ]]; then
@@ -79,11 +79,11 @@ if [[ -n $(echo ${^fpath}/chpwd_recent_dirs(N)) && -n $(echo ${^fpath}/cdr(N)) ]
   zstyle ':chpwd:*' recent-dirs-file "${XDG_CACHE_HOME:-$HOME/.cache}/shell/chpwd-recent-dirs"
 fi
 
-peco-cdr() {
-  local dest=$(cdr -l | sed 's/^\s*[0-9]*\s*//' | peco --query "$LBUFFER")
+fzf-cdr() {
+  local dest=$(cdr -l | sed 's/^\s*[0-9]*\s*//' | fzf --query "$LBUFFER" --preview 'ls {}')
   [[ -n $dest ]] && BUFFER="cd $dest" && zle accept-line
 }
-zle -N peco-cdr
+zle -N fzf-cdr
 
 # set Alias
 alias ls='ls $lsoption'
@@ -96,8 +96,8 @@ alias cd='cdls'
 alias w3m='w3m google.com'
 alias k='kubectl'
 alias d='sudo docker'
-bindkey "^I" peco-history-selection
-bindkey "^U" peco-cdr
+bindkey "^H" fzf-history-selection
+bindkey "^U" fzf-cdr
 case ${OSTYPE} in
   darwin*)
     export LESSOPEN="| /usr/local/bin/src-hilite-lesspipe.sh %s"
@@ -117,6 +117,11 @@ export PATH=${PATH}:$HOME/git/dotfiles/bin
 export PATH=${PATH}:/home/user/git/dotfiles/bin
 export PATH=${PATH}:$HOME/.nodebrew/current/bin
 export PATH=${PATH}:/usr/local/opt/mysql-client/bin
+
+# for pyenv
+export PYENV_ROOT="$HOME/.pyenv"
+command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
 
 # for ranger
 export EDITOR=vim
@@ -172,9 +177,9 @@ alias rmp='pa rm'
 alias cpp='pa cp'
 alias mvp='pa mv'
 
-# 'pa' function: command wrapper for interactive file/directory selection using 'find' and 'peco'.
+# 'pa' function: command wrapper for interactive file/directory selection using 'find' and 'fzf'.
 # Supports commands: cd, ls, vi, vim, less, cat, more, find, rm, cp, mv.
-
+export FZF_DEFAULT_OPTS='--reverse --border --preview-window=down --bind "ctrl-t:change-preview-window:right|hidden|down"'
 pa() {
   local cmd="$1"; shift
   local args="$@"
@@ -184,30 +189,30 @@ pa() {
   # Path selection
   case "$cmd" in
     cd|ls)
-      selected_path=$(find ${args:-.} -type d | peco)
+      selected_path=$(find ${args:-.} -type d 2> /dev/null | fzf --preview 'ls {}')
       ;;
     vi|vim|less|cat|more)
-      selected_path=$(find ${args:-.} -type f | peco)
+      selected_path=$(find ${args:-.} -type f 2> /dev/null | fzf --preview 'head -100 {} 2> /dev/null')
       ;;
     find)
-      selected_path=$(find ${args:-.} | peco)
+      selected_path=$(find ${args:-.} 2> /dev/null | fzf --preview 'head -100 {} 2> /dev/null || ls {}')
       [ -z "$selected_path" ] && { echo "[!] No selection made."; return; }
       [ -d "$selected_path" ] && cd "$selected_path" || cd "$(dirname "$selected_path")"
       ls
       return
       ;;
     rm)
-      selected_path=$(find ${args:-.} | peco)
+      selected_path=$(find ${args:-.} 2> /dev/null | fzf --preview 'head -100 {} 2> /dev/null || ls {}')
       [ -z "$selected_path" ] && { echo "[!] No selection made."; return; }
       echo -n "[?] Delete '$selected_path'? yes/no: "; read confirm
       [[ "$confirm" =~ ^(yes|y|Y)$ ]] && rm -r "$selected_path" || echo "[!] Deletion cancelled."
       return
       ;;
     cp|mv)
-      [[ -n "$args" ]] && selected_path=$(find $args -type f | peco) || { echo -n "[?] Enter source path: "; read input_path; selected_path=$(find ${input_path:-.} -type f | peco); }
+      [[ -n "$args" ]] && selected_path=$(find $args -type f 2> /dev/null | fzf --preview 'head -100 {} 2> /dev/null') || { echo -n "[?] Enter source path: "; read input_path; selected_path=$(find ${input_path:-.} -type f 2> /dev/null | fzf --preview 'head -100 {} 2> /dev/null'); }
       [ -z "$selected_path" ] && { echo "[!] No selection made."; return; }
       echo -n "[?] Enter destination path: "; read dst_input_path
-      dst_path=$(find ${dst_input_path:-.} -type d | peco)
+      dst_path=$(find ${dst_input_path:-.} -type d 2> /dev/null | fzf --preview 'ls {}')
       [ -z "$dst_path" ] && { echo "[!] No destination selected."; return; }
       if [ -e "$dst_path/$(basename "$selected_path")" ]; then
         echo -n "[?] Overwrite existing file? yes/no: "; read overwrite_confirm
