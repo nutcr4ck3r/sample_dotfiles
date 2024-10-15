@@ -23,7 +23,7 @@ Plug 'tpope/vim-surround'
 Plug 'sjl/badwolf'
 Plug 'obcat/vim-sclow'
 Plug 'ConradIrwin/vim-bracketed-paste'
-Plug 'https://github.com/babarot/vim-buftabs'
+Plug 'babarot/vim-buftabs'
 Plug 'tpope/vim-commentary'
 Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
@@ -47,6 +47,15 @@ function! FZGrep(query, fullscreen)
   call fzf#vim#grep(initial_command, 1, fzf#vim#with_preview(spec), a:fullscreen)
 endfunction
 command! -nargs=* -bang RG call FZGrep(<q-args>, <bang>0)
+" Modified FZFMru command to show preview
+command! -bang -nargs=? FZFMru call fzf_mru#actions#mru(<q-args>,
+    \{
+      \'window': {'width': 0.9, 'height': 0.6},
+      \'options': [
+        \'--preview', 'bat --style=numbers --color=always {}',
+        \'--preview-window', 'down:50%'
+      \]
+    \})
 nnoremap <silent> ff :Files<CR>
 nnoremap <silent> fg :GFiles<CR>
 nnoremap <silent> fr :RG<CR>
