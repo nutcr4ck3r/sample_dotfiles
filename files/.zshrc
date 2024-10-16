@@ -30,62 +30,7 @@ fi
 set -o vi
 bindkey "jj" vi-cmd-mode
 
-# functions
-## cd and ls
-case ${OSTYPE} in
-  darwin*)
-    lsoption='-G'
-    ;;
-  linux*)
-    lsoption='--color=auto'
-    ;;
-esac
-cdls ()
-{
-  \cd "$@" && echo -e "\e[32m[ MOVED >> \e[33m$(pwd)\e[32m ]\e[m" \
-    && ls $lsoption
-}
-
-## colorfull man
-man() {
-  env \
-    LESS_TERMCAP_md=$'\e[01;31m' \
-    LESS_TERMCAP_me=$'\e[0m' \
-    LESS_TERMCAP_se=$'\e[0m' \
-    LESS_TERMCAP_so=$'\e[01;44;33m' \
-    LESS_TERMCAP_ue=$'\e[0m' \
-    LESS_TERMCAP_us=$'\e[01;32m' \
-    man "$@"
-}
-
-## Command History Search by fzf
-function fzf-history-selection() {
-  BUFFER=$(history -n -r 1 | fzf --query "$LBUFFER")
-  CURSOR=$#BUFFER
-  zle reset-prompt
-  zle clear-screen
-}
-zle -N fzf-history-selection
-
-# DirPath History Search & Move by fzf
-[[ ! -d "${XDG_CACHE_HOME:-$HOME/.cache}/shell/" ]] && mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/shell/"
-
-if [[ -n $(echo ${^fpath}/chpwd_recent_dirs(N)) && -n $(echo ${^fpath}/cdr(N)) ]]; then
-  autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
-  add-zsh-hook chpwd chpwd_recent_dirs
-  zstyle ':completion:*:*:cdr:*:*' menu selection
-  zstyle ':completion:*' recent-dirs-insert both
-  zstyle ':chpwd:*' recent-dirs-max 500
-  zstyle ':chpwd:*' recent-dirs-file "${XDG_CACHE_HOME:-$HOME/.cache}/shell/chpwd-recent-dirs"
-fi
-
-fzf-cdr() {
-  local dest=$(cdr -l | sed 's/^\s*[0-9]*\s*//' | fzf --query "$LBUFFER" --preview 'ls {}')
-  [[ -n $dest ]] && BUFFER="cd $dest" && zle accept-line
-}
-zle -N fzf-cdr
-
-# set Alias
+# set Alias & Keybinding
 alias ls='ls $lsoption'
 alias l='ls $lsoption'
 alias ll='ls -lhF $lsoption'
@@ -96,33 +41,33 @@ alias cd='cdls'
 alias w3m='w3m google.com'
 alias k='kubectl'
 alias d='sudo docker'
+alias so='source ~/.zshrc'
+alias cdp='pa cd'
+alias lsp='pa ls'
+alias vip='pa vi'
+alias vimp='pa vim'
+alias lessp='pa less'
+alias catp='pa cat'
+alias morep='pa more'
+alias findp='pa find'
+alias rmp='pa rm'
+alias cpp='pa cp'
+alias mvp='pa mv'
 bindkey "^H" fzf-history-selection
 bindkey "^U" fzf-cdr
-case ${OSTYPE} in
-  darwin*)
-    export LESSOPEN="| /usr/local/bin/src-hilite-lesspipe.sh %s"
-    export LESS=' -R '
-    ;;
-  linux*)
-    export LESSOPEN="| /usr/share/source-highlight/src-hilite-lesspipe.sh %s"
-    export LESS=' -R '
-    ;;
-esac
 
 # set path
 export PATH=${PATH}:/snap/bin
 export PATH=${PATH}:/opt/java/jdk/bin
 export PATH=${PATH}:$HOME/.local/bin
 export PATH=${PATH}:$HOME/git/dotfiles/bin
-export PATH=${PATH}:/home/user/git/dotfiles/bin
+export PATH=${PATH}:$HOME/git/dotfiles/bin
 export PATH=${PATH}:$HOME/.nodebrew/current/bin
 export PATH=${PATH}:/usr/local/opt/mysql-client/bin
-
 # for pyenv
 export PYENV_ROOT="$HOME/.pyenv"
 command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
-
 # for ranger
 export EDITOR=vim
 
@@ -164,18 +109,73 @@ show_command_begin_time() {
 }
 zle -N accept-line show_command_begin_time
 
-alias so='source ~/.zshrc'
-alias cdp='pa cd'
-alias lsp='pa ls'
-alias vip='pa vi'
-alias vimp='pa vim'
-alias lessp='pa less'
-alias catp='pa cat'
-alias morep='pa more'
-alias findp='pa find'
-alias rmp='pa rm'
-alias cpp='pa cp'
-alias mvp='pa mv'
+###############
+## Functions ##
+################################################################################
+# highlighting less
+case ${OSTYPE} in
+  darwin*)
+    export LESSOPEN="| /usr/local/bin/src-hilite-lesspipe.sh %s"
+    export LESS=' -R '
+    ;;
+  linux*)
+    export LESSOPEN="| /usr/share/source-highlight/src-hilite-lesspipe.sh %s"
+    export LESS=' -R '
+    ;;
+esac
+
+# cd and ls
+case ${OSTYPE} in
+  darwin*)
+    lsoption='-G'
+    ;;
+  linux*)
+    lsoption='--color=auto'
+    ;;
+esac
+cdls ()
+{
+  \cd "$@" && echo -e "\e[32m[ MOVED >> \e[33m$(pwd)\e[32m ]\e[m" \
+    && ls $lsoption
+}
+
+# colorfull man
+man() {
+  env \
+    LESS_TERMCAP_md=$'\e[01;31m' \
+    LESS_TERMCAP_me=$'\e[0m' \
+    LESS_TERMCAP_se=$'\e[0m' \
+    LESS_TERMCAP_so=$'\e[01;44;33m' \
+    LESS_TERMCAP_ue=$'\e[0m' \
+    LESS_TERMCAP_us=$'\e[01;32m' \
+    man "$@"
+}
+
+# Command History Search by fzf
+function fzf-history-selection() {
+  BUFFER=$(history -n -r 1 | fzf --query "$LBUFFER")
+  CURSOR=$#BUFFER
+  zle reset-prompt
+  zle clear-screen
+}
+zle -N fzf-history-selection
+
+# DirPath History Search & Move by fzf
+[[ ! -d "${XDG_CACHE_HOME:-$HOME/.cache}/shell/" ]] && mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/shell/"
+
+if [[ -n $(echo ${^fpath}/chpwd_recent_dirs(N)) && -n $(echo ${^fpath}/cdr(N)) ]]; then
+  autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
+  add-zsh-hook chpwd chpwd_recent_dirs
+  zstyle ':completion:*:*:cdr:*:*' menu selection
+  zstyle ':completion:*' recent-dirs-insert both
+  zstyle ':chpwd:*' recent-dirs-max 500
+  zstyle ':chpwd:*' recent-dirs-file "${XDG_CACHE_HOME:-$HOME/.cache}/shell/chpwd-recent-dirs"
+fi
+fzf-cdr() {
+  local dest=$(cdr -l | sed 's/^\s*[0-9]*\s*//' | fzf --query "$LBUFFER" --preview 'ls {}')
+  [[ -n $dest ]] && BUFFER="cd $dest" && zle accept-line
+}
+zle -N fzf-cdr
 
 # 'pa' function: command wrapper for interactive file/directory selection using 'find' and 'fzf'.
 # Supports commands: cd, ls, vi, vim, less, cat, more, find, rm, cp, mv.
@@ -192,24 +192,23 @@ pa() {
       selected_path=$(find ${args:-.} -type d 2> /dev/null | fzf --preview 'ls {}')
       ;;
     vi|vim|less|cat|more)
-      selected_path=$(find ${args:-.} -type f 2> /dev/null | fzf --preview 'head -100 {} 2> /dev/null')
+      selected_path=$(find ${args:-.} -type f 2> /dev/null | fzf --preview 'bat --style=numbers --color=always {} 2> /dev/null')
       ;;
     find)
-      selected_path=$(find ${args:-.} 2> /dev/null | fzf --preview 'head -100 {} 2> /dev/null || ls {}')
+      selected_path=$(find ${args:-.} 2> /dev/null | fzf --preview 'bat --style=numbers --color=always {} 2> /dev/null || head -100 {} 2> /dev/null || ls {}')
       [ -z "$selected_path" ] && { echo "[!] No selection made."; return; }
       [ -d "$selected_path" ] && cd "$selected_path" || cd "$(dirname "$selected_path")"
-      ls
       return
       ;;
     rm)
-      selected_path=$(find ${args:-.} 2> /dev/null | fzf --preview 'head -100 {} 2> /dev/null || ls {}')
+      selected_path=$(find ${args:-.} 2> /dev/null | fzf --preview 'bat --style=numbers --color=always {} 2> /dev/null || head -100 {} 2> /dev/null || ls {}')
       [ -z "$selected_path" ] && { echo "[!] No selection made."; return; }
       echo -n "[?] Delete '$selected_path'? yes/no: "; read confirm
       [[ "$confirm" =~ ^(yes|y|Y)$ ]] && rm -r "$selected_path" || echo "[!] Deletion cancelled."
       return
       ;;
     cp|mv)
-      [[ -n "$args" ]] && selected_path=$(find $args -type f 2> /dev/null | fzf --preview 'head -100 {} 2> /dev/null') || { echo -n "[?] Enter source path: "; read input_path; selected_path=$(find ${input_path:-.} -type f 2> /dev/null | fzf --preview 'head -100 {} 2> /dev/null'); }
+      [[ -n "$args" ]] && selected_path=$(find $args -type f 2> /dev/null | fzf --preview 'bat --style=numbers --color=always {} 2> /dev/null || head -100 {} 2> /dev/null') || { echo -n "[?] Enter source path: "; read input_path; selected_path=$(find ${input_path:-.} -type f 2> /dev/null | fzf --preview 'bat --style=numbers --color=always {} 2> /dev/null || head -100 {} 2> /dev/null'); }
       [ -z "$selected_path" ] && { echo "[!] No selection made."; return; }
       echo -n "[?] Enter destination path: "; read dst_input_path
       dst_path=$(find ${dst_input_path:-.} -type d 2> /dev/null | fzf --preview 'ls {}')
@@ -230,49 +229,4 @@ pa() {
   [ -z "$selected_path" ] && { echo "[!] No selection made."; return; }
   echo "[-] Executing command: $cmd $selected_path"
   [ "$cmd" = "cd" ] && cd "$selected_path" || eval "$cmd $selected_path"
-}
-
-# vp: A simple Vim plugin manager for installing, removing, listing, and updating plugins.
-
-vp() {
-    local plugin_dir="$HOME/.vim/pack/vp/start"
-    [[ ! -d "$plugin_dir" ]] && mkdir -p "$plugin_dir"
-
-    case $1 in
-        -i|--install)
-            [[ -z "$2" ]] && { echo "Error: No repository URL provided."; return 1; }
-            local repo_url="$2"
-            [[ "$repo_url" != http* ]] && repo_url="https://github.com/$repo_url.git"
-            git clone "$repo_url" "$plugin_dir/$(basename "$repo_url" .git)" || {
-                echo "Error: Failed to clone the repository."; return 1;
-            }
-            echo "Plugin installed: $(basename "$repo_url" .git)"
-            ;;
-        -r|--remove)
-            [[ -z "$2" ]] && { echo "Error: No plugin name provided."; return 1; }
-            local plugin_path="$plugin_dir/$2"
-            [[ -d "$plugin_path" ]] && { rm -rf "$plugin_path" && echo "Plugin removed: $2"; } || {
-                echo "Error: Plugin '$2' not found."; return 1;
-            }
-            ;;
-        -l|--list)
-            echo "Installed plugins:" && ls "$plugin_dir" || echo "No plugins installed."
-            ;;
-        -u|--update)
-            echo "Updating all plugins..."
-            for dir in "$plugin_dir"/*; do
-                [[ -d "$dir/.git" ]] && echo "Updating $(basename "$dir")..." && git -C "$dir" pull || echo "Error: Failed to update $(basename "$dir")"
-            done
-            ;;
-        *)
-            echo "Usage: vp {
-  -i|--install <repo_url>   Install a plugin. If 'user/repo' is given, it will
-                            be cloned from GitHub.
-  -r|--remove <plugin_name> Remove the specified plugin.
-  -l|--list                 List all installed plugins.
-  -u|--update               Update all installed plugins.
-}"
-            return 1
-            ;;
-    esac
 }
