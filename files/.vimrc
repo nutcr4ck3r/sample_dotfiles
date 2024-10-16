@@ -19,23 +19,47 @@
 
 call plug#begin()
 
-Plug 'tpope/vim-surround'
 Plug 'sjl/badwolf'
-Plug 'obcat/vim-sclow'
+Plug 'tpope/vim-surround'
 Plug 'ConradIrwin/vim-bracketed-paste'
-Plug 'babarot/vim-buftabs'
 Plug 'tpope/vim-commentary'
 Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
-Plug 'ntpeters/vim-better-whitespace'
 Plug 'pbogut/fzf-mru.vim'
+Plug 'ntpeters/vim-better-whitespace'
+Plug 'luochen1990/rainbow'
+Plug 'ojroques/vim-scrollstatus'
+Plug 'pacha/vem-tabline'
+Plug 'voldikss/vim-floaterm'
 
 call plug#end()
 
-" Plugin's commands
+" Plugin's commands ------------------------------------------------------------
 " ff : Search files with fzf
 " fr : Search strings with fzf:ripgrep
 " fm : Search files in MRU
+" <C-j> : Toggle Floaterm
+" StripWhitespace : Delete all trailing spaces
+nnoremap <silent> ff :Files<CR>
+nnoremap <silent> fg :GFiles<CR>
+nnoremap <silent> fr :RG<CR>
+nnoremap <silent> fm :FZFMru<CR>
+nnoremap <silent> <C-j> :FloatermToggle<CR>
+
+" Statusline with ojroques/vim-scrollstatus ------------------------------------
+set laststatus=2
+set statusline=%R│%f\ %m│%<
+set statusline+=%=│%Y│%{&fileencoding}│row\ %L│%{ScrollStatus()}│
+let g:scrollstatus_symbol_track = ' '
+let g:scrollstatus_symbol_bar = '━'
+let g:scrollstatus_size = 15
+
+" voldikss/vim-floaterm --------------------------------------------------------
+let g:floaterm_autoclose=2
+augroup vimrc_floaterm
+  autocmd!
+  autocmd QuitPre * FloatermKill!
+augroup END
 
 " fzf.vim  ---------------------------------------------------------------------
 " Modified Rg command to direct path
@@ -56,10 +80,14 @@ command! -bang -nargs=? FZFMru call fzf_mru#actions#mru(<q-args>,
         \'--preview-window', 'down:50%'
       \]
     \})
-nnoremap <silent> ff :Files<CR>
-nnoremap <silent> fg :GFiles<CR>
-nnoremap <silent> fr :RG<CR>
-nnoremap <silent> fm :FZFMru<CR>
+
+" luochen1990/rainbow ----------------------------------------------------------
+let g:rainbow_active = 1
+let g:rainbow_conf = {
+      \'guifgs': ['orange', 'magenta', 'cyan'],
+      \'ctermfgs': ['yellow', 'magenta', 'cyan'],
+      \'guis': ['bold'],'cterms': ['bold']
+      \}
 
 " ------------------------------------------------------------------------------
 " General settings
@@ -168,7 +196,7 @@ vnoremap <S-e> ge
 " Toggle buffer
 nnoremap <C-h> :bprevious<CR>
 nnoremap <C-l> :bnext<CR>
-nnoremap <C-w> :bdelete<CR>
+nnoremap <C-w> :bp<bar>sp<bar>bn<bar>bd<CR>
 
 " Split window
 nnoremap <silent> fu <C-w>s<C-w>j
@@ -279,7 +307,7 @@ let g:vim_json_syntax_conceal = 0
 execute "set colorcolumn=" . join(range(81, 9999), ',')
 highlight ColorColumn guibg=#333333 ctermbg=darkgray
 
-" Fix CursorLineNr
+" Fix CursorLineNr color
 hi CursorLineNr   cterm=bold ctermfg=White gui=bold guifg=White
 
 " Cursor shaping
