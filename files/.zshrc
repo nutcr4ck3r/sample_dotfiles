@@ -64,6 +64,8 @@ export PATH=${PATH}:$HOME/git/dotfiles/bin
 export PATH=${PATH}:$HOME/git/dotfiles/bin
 export PATH=${PATH}:$HOME/.nodebrew/current/bin
 export PATH=${PATH}:/usr/local/opt/mysql-client/bin
+# colorful man page
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 # for pyenv
 export PYENV_ROOT="$HOME/.pyenv"
 command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
@@ -137,18 +139,6 @@ cdls ()
 {
   \cd "$@" && echo -e "\e[32m[ MOVED >> \e[33m$(pwd)\e[32m ]\e[m" \
     && ls $lsoption
-}
-
-# colorfull man
-man() {
-  env \
-    LESS_TERMCAP_md=$'\e[01;31m' \
-    LESS_TERMCAP_me=$'\e[0m' \
-    LESS_TERMCAP_se=$'\e[0m' \
-    LESS_TERMCAP_so=$'\e[01;44;33m' \
-    LESS_TERMCAP_ue=$'\e[0m' \
-    LESS_TERMCAP_us=$'\e[01;32m' \
-    man "$@"
 }
 
 # Command History Search by fzf
