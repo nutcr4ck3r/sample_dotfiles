@@ -8,7 +8,7 @@ echo "[i] Install basic tools."
 sudo apt install -y \
   xclip source-highlight docker.io docker-compose \
   gawk tmux unar ripgrep bat wget curl git unzip ranger \
-  python3-pip python3-venv fzf vim-gtk3
+  python3-pip python3-venv fzf vim-gtk3 xsel
 
 # Create link for batcat
 mkdir -p ~/.local/bin
