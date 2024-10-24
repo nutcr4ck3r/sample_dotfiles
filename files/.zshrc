@@ -53,7 +53,7 @@ alias findp='pa find'
 alias rmp='pa rm'
 alias cpp='pa cp'
 alias mvp='pa mv'
-bindkey "^H" fzf-history-selection
+bindkey "^K" fzf-history-selection
 bindkey "^U" fzf-cdr
 
 # set path
@@ -66,6 +66,7 @@ export PATH=${PATH}:$HOME/.nodebrew/current/bin
 export PATH=${PATH}:/usr/local/opt/mysql-client/bin
 # colorful man page
 export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+export MANROFFOPT="-c"
 # for pyenv
 export PYENV_ROOT="$HOME/.pyenv"
 command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
