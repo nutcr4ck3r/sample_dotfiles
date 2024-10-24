@@ -47,7 +47,6 @@ Plug 'vim-airline/vim-airline-themes'
 " Coding
 Plug 'SidOfc/mkdx'
 Plug 'preservim/vim-markdown'
-" Plug 'python-mode/python-mode', { 'for': 'python', 'branch': 'develop' }
 
 call plug#end()
 
